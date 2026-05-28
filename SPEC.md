@@ -27,6 +27,8 @@ moi data lives under a directory referred to as `$MOI_HOME`. The default locatio
 │   └── vault.yaml      ←   named by label; uuid lives inside
 ├── email/              ← saved .eml messages, by account + date       (§3.9)
 │   └── you@example.com/2026/05/28/HH-MM-SS - sender - subject.eml
+├── contacts/           ← address book, one .vcf per contact          (§3.10)
+│   └── Sam Doe.vcf
 ├── private/            ← more-protected stage, mirrors the root      (§3.7)
 │   └── avatar.txt      ←   address, health, substances, contacts…
 │
@@ -42,9 +44,9 @@ moi data lives under a directory referred to as `$MOI_HOME`. The default locatio
 ```
 
 The names moi reserves at the root are `bio.txt`, `avatar.txt`, `todo.txt`, `done.txt`, `project.yaml`,
-`intake.log.jsonl`, and the `tasks/`, `notes/`, `journal/`, `drives/`, `email/`, `projects/`, `scripts/`,
-`private/`, and `secret/` directories (the last two are privacy stages, §3.7). Everything else under
-`$MOI_HOME` belongs to the user.
+`intake.log.jsonl`, and the `tasks/`, `notes/`, `journal/`, `drives/`, `email/`, `contacts/`, `projects/`,
+`scripts/`, `private/`, and `secret/` directories (the last two are privacy stages, §3.7). Everything
+else under `$MOI_HOME` belongs to the user.
 
 ---
 
@@ -96,7 +98,8 @@ Two kinds of content live here:
   document. No schema, no required frontmatter, no index (§3.1–§3.4).
 - **Structured records** — the dose & substance log (§3.5) and the drives catalog (§3.8) are
   schema-validated, because they must be read identically by every tool.
-- **Archive** — `email/` keeps saved messages as `.eml` files (§3.9).
+- **Standard-format files** — `email/` keeps messages as `.eml` (§3.9) and `contacts/` keeps your
+  address book as `.vcf` vCards (§3.10).
 
 > **Sensitivity.** Personal context — especially the avatar and the substance log — is highly
 > private. moi stores plain local files and says nothing about access control; protecting them
@@ -234,6 +237,15 @@ email/<account-address>/<YYYY>/<MM>/<DD>/HH-MM-SS - <sender> - <subject>.eml
 - Mail is sensitive: the `email/` tree **SHOULD** usually live in a privacy stage (§3.7), not the
   public base.
 
+### 3.10 Contacts — `contacts/`
+
+`$MOI_HOME/contacts/` is your address book — one [vCard](https://datatracker.ietf.org/doc/html/rfc6350)
+file per contact (`.vcf`, vCard 4.0 recommended), the portable standard any phone or mail client reads.
+Name each file by the contact's display name, filesystem-safe (§7) — e.g. `contacts/Sam Doe.vcf`; the
+vCard's `UID` is the stable identity inside, so the filename can change without losing it. Contacts hold
+other people's personal data and **SHOULD** usually live in a privacy stage (§3.7). (The avatar's
+`emergency contacts:` is a quick shortlist; the full records live here.)
+
 ---
 
 ## 4. Projects
@@ -362,7 +374,7 @@ A conforming moi tool:
 
 1. Resolves `$MOI_HOME` (default `~/Documents`); treats it as a directory of the user's own files.
 2. Claims only the reserved root names (`bio.txt`, `avatar.txt`, `todo.txt`, `done.txt`, `project.yaml`,
-   `intake.log.jsonl`, `tasks/`, `notes/`, `journal/`, `drives/`, `email/`, `projects/`, `scripts/`, `private/`, `secret/`); leaves all other root entries untouched.
+   `intake.log.jsonl`, `tasks/`, `notes/`, `journal/`, `drives/`, `email/`, `contacts/`, `projects/`, `scripts/`, `private/`, `secret/`); leaves all other root entries untouched.
 3. Reads/writes `todo.txt` / `done.txt` in todo.txt format, when it touches tasks (§2).
 4. Treats `bio.txt`, `avatar.txt`, `notes/`, and `journal/` as free-form plain text (no schema), and
    `intake.log.jsonl` as a schema-validated structured log; never silently rewrites or deletes the

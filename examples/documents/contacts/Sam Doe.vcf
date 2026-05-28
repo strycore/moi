@@ -1,0 +1,9 @@
+BEGIN:VCARD
+VERSION:4.0
+UID:urn:uuid:9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d
+FN:Sam Doe
+N:Doe;Sam;;;
+EMAIL;TYPE=home:sam@example.com
+TEL;TYPE=cell:+1-555-0100
+NOTE:Example contact — one .vcf per person; filename is the display name.
+END:VCARD
