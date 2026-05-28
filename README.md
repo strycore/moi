@@ -21,7 +21,7 @@ tool or AI agent can read to learn who you are and what's going on in your life.
 │   └── finances.md
 ├── journal/            # dated log entries (YYYY-MM-DD.md)
 │   └── 2026-05-26.md
-├── avatar.txt          # this is you — free-form plain text, no schema
+├── avatar.txt          # this is you — open key-value doc, no schema
 ├── intake.log.jsonl    # append-only dose/use event log — schema'd JSONL
 ├── drives/             # storage catalog — one file per drive (named by label)
 │   └── vault.yaml
@@ -46,9 +46,9 @@ tool or AI agent can read to learn who you are and what's going on in your life.
 1. **The root is a folder you own.** `$MOI_HOME` defaults to `~/Documents`. moi reserves only a few
    names there — `bio.txt`, `avatar.txt`, `todo.txt`, `done.txt`, `project.yaml`,
    `intake.log.jsonl`, `tasks/`, `notes/`, `journal/`, `drives/`, `email/`, `projects/`, `scripts/`, `private/`, `secret/` — and ignores everything else.
-2. **Personal context is the point.** `bio.txt` (how to help you), `avatar.txt` (a free-form "this is
-   me"), `notes/` (knowledge base), and `journal/` (dated log) are plain text you write however you
-   like; the only structured file is `intake.log.jsonl` (a dose/use log). An agent reads these to gain
+2. **Personal context is the point.** `bio.txt` (how to help you), `avatar.txt` (an open key-value
+   "this is me"), `notes/` (knowledge base), and `journal/` (dated log) are plain text; the only
+   schema-validated personal file is `intake.log.jsonl` (a dose/use log). An agent reads these to gain
    standing context instead of starting from zero. All optional.
 3. **Projects live in `projects/`.** Each is a folder under `projects/` with a `project.yaml` (carrying
    its id/name/type and any `x-<tool>:` state). Anything outside `projects/` is just your files.

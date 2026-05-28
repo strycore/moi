@@ -92,8 +92,8 @@ root, §4.3) and every file is **OPTIONAL** — an absent file or directory simp
 
 Two kinds of content live here:
 
-- **Prose & free-form** — `bio.txt`, `avatar.txt`, `notes/`, and `journal/` are plain text you write
-  however you like; no schema, no required frontmatter, no index (§3.1–§3.4).
+- **Plain text** — `bio.txt`, `notes/`, and `journal/` are prose; `avatar.txt` is an open key-value
+  document. No schema, no required frontmatter, no index (§3.1–§3.4).
 - **Structured records** — the dose & substance log (§3.5) and the drives catalog (§3.8) are
   schema-validated, because they must be read identically by every tool.
 - **Archive** — `email/` keeps saved messages as `.eml` files (§3.9).
@@ -132,16 +132,18 @@ content.
 
 ### 3.4 `avatar.txt` — this is you
 
-`$MOI_HOME/avatar.txt` is a free-form plain-text description of the person — *you*. There is no schema
-and no required format: write it however suits you (loose `key: value` lines, prose, or a mix). It is
-the canonical "this is me" file an agent reads to know who it's dealing with — name, background,
-pronouns, body, health, contacts, interests, devices, whatever you choose to record. Group related
-entries by indenting them under a label if it helps (e.g. `emails:`, `emergency contacts:`); see
-[`examples/documents/avatar.txt`](examples/documents/avatar.txt) for the shape.
+`$MOI_HOME/avatar.txt` is the canonical "this is me" file an agent reads to know who it's dealing with.
+It is a **key-value document** — one `key: value` per line — not prose. The keys are **open**: they can
+name any aspect of your life (name, pronouns, body, health, interests, work, devices, …), and moi
+imposes no schema on which keys exist or what their values mean.
 
-Being your own plain text, it is yours to shape: a tool **MUST NOT** reformat it or impose structure,
-and **MUST NOT** rewrite or delete your words. It may append, or make small targeted edits, only at
-your request (§7).
+Some keys hold **sub-entries** instead of a single value — an indented block under the key, of further
+`key: value` lines or a list. For example `projects:`, `emails:`, `emergency contacts:`, and `machines:`
+each group several items. See [`examples/documents/avatar.txt`](examples/documents/avatar.txt) for the
+shape.
+
+It is yours to shape: a tool **MUST NOT** reformat it or impose a schema, and **MUST NOT** rewrite or
+delete your entries. It may append, or make small targeted edits, only at your request (§7).
 
 ### 3.5 Dose & substance log — `intake.log.jsonl`
 

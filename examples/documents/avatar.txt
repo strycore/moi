@@ -1,5 +1,5 @@
-# avatar.txt — free-form, no schema. Write yours however you like.
-# Group related entries by indenting them under a label, if it helps.
+# avatar.txt — an open key-value document, no schema. Keys can name any aspect of your life.
+# Some keys hold sub-entries: indent them under the key (see projects:/emails: below).
 
 name: Alex Jordan Doe
 date of birth: 1990-04-12
