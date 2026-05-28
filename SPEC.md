@@ -29,6 +29,9 @@ moi data lives under a directory referred to as `$MOI_HOME`. The default locatio
 │   └── you@example.com/2026/05/28/HH-MM-SS - sender - subject.eml
 ├── contacts/           ← address book, one .vcf per contact          (§3.10)
 │   └── Sam Doe.vcf
+├── receipts/           ← receipts/invoices: <date> - <recipient> - …  (§3.11)
+│   ├── recipients.txt
+│   └── 2026-05-28 - kaiser - receipt 3952863.pdf
 ├── private/            ← more-protected stage, mirrors the root      (§3.7)
 │   └── avatar.txt      ←   address, health, substances, contacts…
 │
@@ -44,9 +47,9 @@ moi data lives under a directory referred to as `$MOI_HOME`. The default locatio
 ```
 
 The names moi reserves at the root are `bio.txt`, `avatar.txt`, `todo.txt`, `done.txt`, `project.yaml`,
-`intake.log.jsonl`, and the `tasks/`, `notes/`, `journal/`, `drives/`, `email/`, `contacts/`, `projects/`,
-`scripts/`, `private/`, and `secret/` directories (the last two are privacy stages, §3.7). Everything
-else under `$MOI_HOME` belongs to the user.
+`intake.log.jsonl`, and the `tasks/`, `notes/`, `journal/`, `drives/`, `email/`, `contacts/`, `receipts/`,
+`projects/`, `scripts/`, `private/`, and `secret/` directories (the last two are privacy stages, §3.7).
+Everything else under `$MOI_HOME` belongs to the user.
 
 ---
 
@@ -100,6 +103,7 @@ Two kinds of content live here:
   schema-validated, because they must be read identically by every tool.
 - **Standard-format files** — `email/` keeps messages as `.eml` (§3.9) and `contacts/` keeps your
   address book as `.vcf` vCards (§3.10).
+- **Documents** — `receipts/` keeps receipts and invoices (§3.11).
 
 > **Sensitivity.** Personal context — especially the avatar and the substance log — is highly
 > private. moi stores plain local files and says nothing about access control; protecting them
@@ -246,6 +250,18 @@ vCard's `UID` is the stable identity inside, so the filename can change without 
 other people's personal data and **SHOULD** usually live in a privacy stage (§3.7). (The avatar's
 `emergency contacts:` is a quick shortlist; the full records live here.)
 
+### 3.11 Receipts — `receipts/`
+
+`$MOI_HOME/receipts/` holds receipts and invoices (PDFs, images, …). Every receipt's filename **MUST**
+contain two things: the **date of the receipt** (`YYYY-MM-DD`) and a **known recipient identifier** —
+the payee — drawn from the authorized list in `receipts/recipients.txt`, so the same payee is always
+named the same way. Recommended: `<YYYY-MM-DD> - <recipient> - <description>.<ext>` (filesystem-safe,
+§7), e.g. `2026-05-28 - kaiser - receipt 3952863.pdf`.
+
+`receipts/recipients.txt` is the authorized-recipients list — one identifier per line as `id: Full Name`
+(e.g. `kaiser: Kaiser Permanente`); a receipt's identifier **MUST** be one of these. Receipts are
+financial, often medical, records and **SHOULD** usually live in a privacy stage (§3.7).
+
 ---
 
 ## 4. Projects
@@ -374,7 +390,7 @@ A conforming moi tool:
 
 1. Resolves `$MOI_HOME` (default `~/Documents`); treats it as a directory of the user's own files.
 2. Claims only the reserved root names (`bio.txt`, `avatar.txt`, `todo.txt`, `done.txt`, `project.yaml`,
-   `intake.log.jsonl`, `tasks/`, `notes/`, `journal/`, `drives/`, `email/`, `contacts/`, `projects/`, `scripts/`, `private/`, `secret/`); leaves all other root entries untouched.
+   `intake.log.jsonl`, `tasks/`, `notes/`, `journal/`, `drives/`, `email/`, `contacts/`, `receipts/`, `projects/`, `scripts/`, `private/`, `secret/`); leaves all other root entries untouched.
 3. Reads/writes `todo.txt` / `done.txt` in todo.txt format, when it touches tasks (§2).
 4. Treats `bio.txt`, `avatar.txt`, `notes/`, and `journal/` as free-form plain text (no schema), and
    `intake.log.jsonl` as a schema-validated structured log; never silently rewrites or deletes the

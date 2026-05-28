@@ -1,0 +1,4 @@
+# Authorized recipient identifiers for receipts/ (one per line: id: Full Name).
+# A receipt filename's recipient must be one of these ids.
+kaiser: Kaiser Permanente
+acme-utilities: ACME Utilities Co.
