@@ -29,9 +29,11 @@ tool or AI agent can read to learn who you are and what's going on in your life.
 │   └── you@example.com/2026/05/28/HH-MM-SS - sender - subject.eml
 ├── contacts/           # address book — one .vcf (vCard) per contact
 │   └── Sam Doe.vcf
-├── receipts/           # receipts/invoices — "<date> - <recipient> - …"
-│   ├── recipients.txt  #   authorized recipient ids
-│   └── 2026-05-28 - kaiser - receipt 3952863.pdf
+├── records/            # scanned docs & credentials, by category subfolder
+│   ├── health/2021-12-31 - covid-19 vaccination card (CA, Moderna x3).png
+│   └── receipts/       #   receipts category: "<date> - <recipient> - …"
+│       ├── recipients.txt
+│       └── 2026-05-28 - kaiser - receipt 3952863.pdf
 ├── private/            # most-sensitive stage — secure it (perms / no-sync / encrypt)
 │   └── avatar.txt      #   address, health, substances…
 │
@@ -50,7 +52,7 @@ tool or AI agent can read to learn who you are and what's going on in your life.
 
 1. **The root is a folder you own.** `$MOI_HOME` defaults to `~/Documents`. moi reserves only a few
    names there — `bio.txt`, `avatar.txt`, `todo.txt`, `done.txt`, `project.yaml`,
-   `intake.log.jsonl`, `tasks/`, `notes/`, `journal/`, `drives/`, `email/`, `contacts/`, `receipts/`, `projects/`, `scripts/`, `private/`, `secret/` — and ignores everything else.
+   `intake.log.jsonl`, `tasks/`, `notes/`, `journal/`, `drives/`, `email/`, `contacts/`, `records/`, `projects/`, `scripts/`, `private/`, `secret/` — and ignores everything else.
 2. **Personal context is the point.** `bio.txt` (how to help you), `avatar.txt` (an open key-value
    "this is me"), `notes/` (knowledge base), and `journal/` (dated log) are plain text; the only
    schema-validated personal file is `intake.log.jsonl` (a dose/use log). An agent reads these to gain
