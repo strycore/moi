@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://moi.standard/schema/drive.schema.json",
+  "title": "moi drive (drives/<friendly-name>.yaml)",
+  "description": "One storage filesystem in the moi drives catalog. The file is named by a friendly name (the drive's label if set); the required `uuid` field is the authoritative reconciliation key. A scanner (e.g. fili) populates these; a human annotates label/privacy/notes. Unknown keys and x-<tool> namespaces are permitted and must be preserved.",
+  "type": "object",
+  "required": ["uuid"],
+  "properties": {
+    "uuid": { "type": "string", "description": "Filesystem UUID; reconciles the same disk across machines." },
+    "label": { "type": "string" },
+    "fs": { "type": "string", "description": "Filesystem type, e.g. btrfs, ext4, exfat." },
+    "size": { "type": "string", "description": "Human-readable size, e.g. 2T, 500G." },
+    "model": { "type": "string" },
+    "serial": { "type": "string" },
+    "last_mount": { "type": "string", "description": "Most recent mount path." },
+    "device": { "type": "string", "description": "Machine the drive is attached to." },
+    "privacy": {
+      "type": "string",
+      "enum": ["public", "personal", "confidential"],
+      "description": "Sensitivity of the drive's contents; parallels moi privacy stages (SPEC 3.7)."
+    },
+    "notes": { "type": "string" },
+    "folders": {
+      "type": "object",
+      "description": "Top-level folders on the drive, keyed by name. Each value is null (just catalogued) or an object of per-folder metadata.",
+      "additionalProperties": {
+        "type": ["object", "null"],
+        "properties": {
+          "privacy": { "type": "string", "enum": ["public", "personal", "confidential"] },
+          "backup_of": { "type": "string", "description": "What this folder backs up — a drive label, path, device, or project. Its presence marks the folder as a backup." },
+          "notes": { "type": "string" }
+        }
+      }
+    }
+  }
+}

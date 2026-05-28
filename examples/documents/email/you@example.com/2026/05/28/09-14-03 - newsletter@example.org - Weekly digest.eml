@@ -1,0 +1,7 @@
+From: Example Newsletter <newsletter@example.org>
+To: you@example.com
+Date: Thu, 28 May 2026 09:14:03 +0200
+Subject: Weekly digest
+Message-ID: <abc123@example.org>
+
+Example saved message in .eml (RFC 822) form — any mail client can open it.

@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://moi.standard/schema/intake-entry.schema.json",
+  "title": "moi intake.log.jsonl entry",
+  "description": "Schema for a single line of intake.log.jsonl: one dose or use event. The file is JSON Lines (https://jsonlines.org/) — one object of this shape per line, appended in chronological order.",
+  "type": "object",
+  "required": ["at", "substance"],
+  "properties": {
+    "at": { "type": "string", "format": "date-time", "description": "RFC 3339 / ISO 8601 timestamp of the event, including a timezone offset (e.g. 2026-05-28T09:12:00+02:00 or ...Z)." },
+    "substance": { "type": "string" },
+    "action": {
+      "type": "string",
+      "enum": ["taken", "purchased"],
+      "description": "What the event records: a dose was `taken` (consumed) or a quantity was `purchased`. Omitted defaults to `taken`."
+    },
+    "dose": { "type": "string", "description": "Free-form, e.g. '400mg', '1 tablet'; for a purchase, the quantity acquired." },
+    "category": {
+      "type": "string",
+      "enum": ["medical", "recreational", "supplement", "other"]
+    },
+    "route": { "type": "string" },
+    "reason": { "type": "string" },
+    "notes": { "type": "string" }
+  }
+}

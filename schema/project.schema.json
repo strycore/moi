@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://moi.standard/schema/project.schema.json",
+  "title": "moi project.yaml",
+  "description": "Manifest that marks a directory as a moi project (a directory is a project iff it contains a project.yaml). Lives in the project's own directory; $MOI_HOME defaults to ~/Documents. Defines the standard core fields; tool-specific state lives under x-<tool>: namespaces.",
+  "type": "object",
+  "required": ["id", "name"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Stable, unique identifier. A UUID is recommended; the literal 'home' is reserved for the root home project. Immutable."
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Human-readable label."
+    },
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*$",
+      "description": "Optional stable, filesystem-safe identifier for cross-references (+slug task tags, tool URLs). Independent of the directory name. 'home' is reserved for the root home project."
+    },
+    "type": {
+      "type": "string",
+      "enum": ["software", "research", "personal", "other", "home"],
+      "default": "other",
+      "description": "Project kind. 'home' marks the single pinned personal project."
+    },
+    "created_at": {
+      "type": "string",
+      "description": "Creation timestamp (ISO 8601)."
+    },
+    "updated_at": {
+      "type": "string",
+      "description": "Last-modified timestamp (ISO 8601)."
+    },
+    "repos": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Absolute paths or identifiers of repositories/directories this project spans. A UX hint."
+    }
+  },
+  "patternProperties": {
+    "^x-[a-z0-9][a-z0-9-]*$": {
+      "description": "Tool extension namespace. Owned by the named tool; arbitrary content. Other tools must preserve but not modify it."
+    }
+  },
+  "additionalProperties": false
+}

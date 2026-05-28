@@ -1,0 +1,31 @@
+# avatar.txt — free-form, no schema. Write yours however you like.
+# Group related entries by indenting them under a label, if it helps.
+
+name: Alex Jordan Doe
+date of birth: 1990-04-12
+sex: female
+pronouns: they/them
+gender: non-binary
+languages: French, English
+nationality: French
+nick: alexd
+
+height: 170cm
+weight: 65kg
+interests: hiking, photography, cooking, open-source
+health: mild asthma; no known allergies
+
+main os: Fedora
+work: Example Corp
+
+projects:
+  bliblu: a command line tool to bli the blu
+  recipebook: personal recipe manager
+
+emails:
+  personal: alex@example.com
+  work: alex@examplecorp.test
+
+emergency contacts:
+  Sam Doe (partner)
+  Robin Doe (sibling)

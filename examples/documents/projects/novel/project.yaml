@@ -1,0 +1,18 @@
+# A project living among your real files: ~/Documents/novel/ holds the manuscript
+# (chapter-01.md, outline.md, ...) right next to this manifest. The directory name
+# is "novel" but identity comes from this file, not the folder name.
+id: 7c3e2a10-4b8f-4d21-9a6e-2f0b1c9d8e44
+slug: novel
+name: The Novel
+type: personal
+created_at: '2026-05-19T14:30:00'
+updated_at: '2026-05-26T11:45:00'
+
+# A tool's own state stays inside its x-<tool> namespace; other tools must leave
+# it untouched. Here a hypothetical editor "acme" remembers its open files.
+x-acme:
+  last_opened: chapter-01.md
+  panes:
+    - file: chapter-01.md
+      cursor: { line: 42, col: 7 }
+    - file: outline.md

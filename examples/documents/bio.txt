@@ -1,0 +1,6 @@
+# About me
+
+A software developer who works mostly on the command line. I keep my projects,
+notes, and journal in this folder. I value privacy and plain-text tools that
+won't lock my data away.
+

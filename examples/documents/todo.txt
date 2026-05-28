@@ -1,0 +1,4 @@
+(A) Draft the quarterly plan +planning @desk due:2026-06-01
+(B) Reply to editor about chapter 1 +novel @email
+Read up on JSON Schema draft 2020-12 @desk
+Water the plants @home

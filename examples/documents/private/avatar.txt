@@ -1,0 +1,7 @@
+# The private stage: same format as the base avatar.txt, for the sensitive parts.
+# Secure this whole folder however you like (chmod 700, exclude from sync, encrypt).
+# A tool merges base + private/ only when it can read this stage.
+
+address: 123 Example St, Apt 4
+phone: 555-0100
+health: details you'd rather not sync in the clear

@@ -1,0 +1,18 @@
+# One file per filesystem, named by friendly label (the drive's label).
+# A scanner (fili) fills these in; you annotate label / privacy / notes / folders by hand.
+uuid: a1b2-c3d4
+label: vault
+fs: btrfs
+size: 2T
+model: Samsung T7
+last_mount: /run/media/you/vault
+device: framework
+privacy: confidential
+notes: the encrypted carry drive
+folders:
+  "Music":              # no metadata yet — just catalogued
+  "Photos":
+    privacy: confidential
+  "Data-backup":
+    backup_of: Data     # mirrors the Data drive
+    privacy: confidential
