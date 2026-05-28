@@ -87,6 +87,13 @@ A task moves through this lifecycle:
 So the files directly under `tasks/` are exactly your active set; `tasks/done/` is the dated archive of
 finished plans.
 
+**Linking to issue trackers.** A task **MAY** be associated with external GitHub issues or Jira tickets
+via `key:value` metadata on its `todo.txt` line (todo.txt's native syntax, §2) — recommended
+`gh:<owner>/<repo>#<n>` for GitHub and `jira:<KEY>-<n>` for Jira, repeated for several. The plan
+(`tasks/<slug>.md`) **MAY** also list the full URLs and cross-references. Keeping the reference on the
+task lets a tool sync status between moi and the tracker; such syncing is a tool's job (§9), not part of
+the core.
+
 ---
 
 ## 3. Personal context (the home project)

@@ -1,4 +1,5 @@
 (A) Draft the quarterly plan +planning @desk due:2026-06-01
 (B) Reply to editor about chapter 1 +novel @email
 Read up on JSON Schema draft 2020-12 @desk
+(A) Fix the login bug +sample-app @code gh:alex/sample-app#42 jira:APP-17
 Water the plants @home
