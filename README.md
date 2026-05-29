@@ -34,8 +34,8 @@ tool or AI agent can read to learn who you are and what's going on in your life.
 │   └── receipts/       #   receipts category: "<date> - <recipient> - …"
 │       ├── recipients.txt
 │       └── 2026-05-28 - kaiser - receipt 3952863.pdf
-├── private/            # most-sensitive stage — secure it (perms / no-sync / encrypt)
-│   └── avatar.txt      #   address, health, substances…
+├── secret/             # encryption stage — credentials, tokens, SSN, etc.
+│   └── …               #   layout is yours; secure it (encrypted volume / age blob / …)
 │
 ├── projects/           # your project workspaces
 │   └── novel/          #   a project — contains a project.yaml
@@ -52,7 +52,7 @@ tool or AI agent can read to learn who you are and what's going on in your life.
 
 1. **The root is a folder you own.** `$MOI_HOME` defaults to `~/Documents`. moi reserves only a few
    names there — `bio.txt`, `avatar.txt`, `todo.txt`, `done.txt`, `project.yaml`,
-   `intake.log.jsonl`, `tasks/`, `notes/`, `journal/`, `drives/`, `email/`, `contacts/`, `records/`, `projects/`, `scripts/`, `private/`, `secret/` — and ignores everything else.
+   `intake.log.jsonl`, `tasks/`, `notes/`, `journal/`, `drives/`, `email/`, `contacts/`, `records/`, `projects/`, `scripts/`, `secret/` — and ignores everything else.
 2. **Personal context is the point.** `bio.txt` (how to help you), `avatar.txt` (an open key-value
    "this is me"), `notes/` (knowledge base), and `journal/` (dated log) are plain text; the only
    schema-validated personal file is `intake.log.jsonl` (a dose/use log). An agent reads these to gain
@@ -62,9 +62,10 @@ tool or AI agent can read to learn who you are and what's going on in your life.
 4. **Tools share the tree via namespaces.** Each tool keeps its own state under an `x-<tool>:` key in
    `project.yaml` and must preserve the others on write. So a CLI, a dashboard, and an agent can all
    operate on the same files at once.
-5. **Privacy comes in stages.** Keep everything in the base, or move the most sensitive parts into a
-   more-protected stage directory — `private/` (or `secret/`) — that mirrors the root and that you
-   secure however you like (permissions, no-sync, encryption). A tool merges the stages it can read.
+5. **The tree is personal by default; `secret/` is the encryption stage.** The whole tree already
+   lives on a device you control, so there is no separate "private" stage. For material that warrants
+   encryption at rest — credentials, tokens, SSN/passport/CC, anything too sensitive in cleartext —
+   put it under `secret/` and secure it however you like (encrypted volume, `age` blob, external drive).
 
 ## Why
 

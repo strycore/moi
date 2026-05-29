@@ -34,8 +34,9 @@ moi data lives under a directory referred to as `$MOI_HOME`. The default locatio
 │   └── receipts/
 │       ├── recipients.txt
 │       └── 2026-05-28 - kaiser - receipt 3952863.pdf
-├── private/            ← more-protected stage, mirrors the root      (§3.7)
-│   └── avatar.txt      ←   address, health, substances, contacts…
+├── secret/             ← encrypted-at-rest stage: credentials,        (§3.7)
+│   │                       tokens, SSN/passport/CC, sensitive files
+│   └── …                   (layout is the user's; secured by user)
 │
 ├── projects/           ← your project workspaces                     (§4)
 │   └── novel/          ←   a project (contains a project.yaml)
@@ -50,8 +51,14 @@ moi data lives under a directory referred to as `$MOI_HOME`. The default locatio
 
 The names moi reserves at the root are `bio.txt`, `avatar.txt`, `todo.txt`, `done.txt`, `project.yaml`,
 `intake.log.jsonl`, and the `tasks/`, `notes/`, `journal/`, `drives/`, `email/`, `contacts/`, `records/`,
-`projects/`, `scripts/`, `private/`, and `secret/` directories (the last two are privacy stages, §3.7).
+`projects/`, `scripts/`, and `secret/` directories (the last is the encryption stage, §3.7).
 Everything else under `$MOI_HOME` belongs to the user.
+
+These names are matched **case-insensitively**: a reader **MUST** treat `Records/`, `records/`, and
+`RECORDS/` as the same reserved entry, and **MUST** preserve whatever casing the user chose rather than
+renaming it (capitalized forms like `Records/` or `Journal/` — as in the XDG user dirs `Music`,
+`Pictures` — are equally valid). A tree **MUST NOT** contain two reserved entries that differ only in
+case (§7).
 
 ---
 
@@ -115,11 +122,12 @@ Two kinds of content live here:
 - **Documents** — `records/` keeps scanned documents & credentials in category subfolders (health,
   bank, rent, receipts, …) (§3.11).
 
-> **Sensitivity.** Personal context — especially the avatar and the substance log — is highly
-> private. moi stores plain local files and says nothing about access control; protecting them
-> (filesystem permissions, an encrypted home, selective sync) is the user's responsibility and out of
-> scope for this standard — though **privacy stages** (§3.7) give you a place to put the most sensitive
-> parts. A tool **MUST NOT** transmit this content anywhere without explicit user intent.
+> **Sensitivity.** The whole tree is personal by default — it lives on a device the user controls. moi
+> says nothing about access control; protecting the tree (filesystem permissions, an encrypted home,
+> selective sync) is the user's responsibility and out of scope. For the subset that warrants
+> encryption at rest — credentials, sensitive identifiers, anything too personal to leave in cleartext —
+> moi reserves `secret/` (§3.7). A tool **MUST NOT** transmit any of this content anywhere without
+> explicit user intent.
 
 ### 3.1 `bio.txt` — the entry point
 
@@ -179,39 +187,28 @@ lines and **MUST NOT** rewrite earlier ones (line-append is also the safest conc
 
 To assemble personal context, an agent **SHOULD** start at `bio.txt`, then consult the avatar (§3.4)
 for hard facts and `notes/`, recent `journal/` entries, and the dose log (§3.5) as the task warrants,
-plus the `home` project's tasks (§2) — reading each privacy stage it can access (§3.7). It **MUST**
-treat all of this as the user's own data: cite or summarize it, but never silently rewrite or delete
-it, and never copy a more-protected stage into a less-protected one.
+plus the `home` project's tasks (§2), and merging in anything it can read from `secret/` (§3.7). It
+**MUST** treat all of this as the user's own data: cite or summarize it, but never silently rewrite or
+delete it, and never copy content out of `secret/` into the base tree.
 
-### 3.7 Privacy stages (optional)
+### 3.7 The `secret/` stage
 
-Personal context has a sensitivity gradient — your handle and interests are shareable; your address,
-health, and substance use are not. moi lets you split that gradient across **stages**, ordered from
-most shareable to most protected. Each stage is a directory that mirrors the home layout. The **base
-stage is `$MOI_HOME` itself**; more-protected stages are reserved subdirectories:
+The whole moi tree already lives on a device the user controls, so it is **personal by default** — there
+is no separate "private" stage and no "public" tag. The user decides what (if anything) to share from
+this tree on a case-by-case basis.
 
-- `$MOI_HOME/private/` — a more-protected stage.
-- `$MOI_HOME/secret/` — a yet-more-protected stage (only if you need finer gradation).
+The one reserved exception is `$MOI_HOME/secret/`, a stage for material that warrants encryption at rest
+even on this machine — credentials, tokens, sensitive identifiers (SSN, passport, CC), and any files or
+directories the user judges too sensitive to leave in cleartext. Its layout is up to the user (e.g. one
+keyring file per credential); moi only fixes the location.
 
-A stage holds the same personal-context files as the root (`avatar.txt`, `notes/`, `journal/`,
-`intake.log.jsonl`, …). Use only the stages you need: keeping everything in the base is perfectly
-valid — that is the single-file case. Stage directories are reserved names, not projects (§4).
+moi says **nothing about how `secret/` is secured** — filesystem permissions, exclusion from sync, an
+encrypted volume or external drive, or an `age`/`gpg` blob (e.g. `secret.tar.age`) kept in the
+synced tree and decrypted only when used. Whichever mechanism is chosen, the key or passphrase **MUST**
+live *outside* the moi tree — never synced beside the blob — and losing it means losing the stage.
 
-moi says **nothing about how a stage is secured** — that is the user's choice: filesystem permissions
-(`chmod 700 private/`), excluding the folder from sync, an encrypted file or volume, or a separate
-device. moi only fixes *where* each stage lives so tools can find it.
-
-A stage **MAY** even be stored as a single **encrypted file** rather than a plaintext directory — e.g.
-an `age` or `gpg` blob such as `private.tar.age` kept in the (possibly cloud-synced) tree and decrypted
-to its directory form only when used. This makes a stage portable across machines by ordinary sync
-while staying encrypted at rest. The key or passphrase **MUST** live *outside* the moi tree — never
-synced beside the blob — and losing it means losing the stage.
-
-**Reading.** A tool assembles personal context from the base, then each stage it can access, in order
-of increasing protection (`private/`, then `secret/`); a later stage **adds to**, and on conflict
-overrides, an earlier one. A stage the tool cannot read — no permission, cannot decrypt, absent on this
-machine — is treated as empty; the agent simply has less context and **MUST NOT** assume a stage is
-readable. A tool **MUST NOT** copy content from a more-protected stage into a less-protected one.
+A tool **MUST NOT** assume `secret/` is readable (no permission, undecryptable, absent on this machine
+all mean the same thing: less context), and **MUST NOT** copy content from `secret/` into the base tree.
 
 ### 3.8 Drives catalog — `drives/`
 
@@ -410,13 +407,13 @@ A conforming moi tool:
 
 1. Resolves `$MOI_HOME` (default `~/Documents`); treats it as a directory of the user's own files.
 2. Claims only the reserved root names (`bio.txt`, `avatar.txt`, `todo.txt`, `done.txt`, `project.yaml`,
-   `intake.log.jsonl`, `tasks/`, `notes/`, `journal/`, `drives/`, `email/`, `contacts/`, `records/`, `projects/`, `scripts/`, `private/`, `secret/`); leaves all other root entries untouched.
+   `intake.log.jsonl`, `tasks/`, `notes/`, `journal/`, `drives/`, `email/`, `contacts/`, `records/`, `projects/`, `scripts/`, `secret/`); matches them case-insensitively (§1); leaves all other root entries untouched.
 3. Reads/writes `todo.txt` / `done.txt` in todo.txt format, when it touches tasks (§2).
 4. Treats `bio.txt`, `avatar.txt`, `notes/`, and `journal/` as free-form plain text (no schema), and
    `intake.log.jsonl` as a schema-validated structured log; never silently rewrites or deletes the
    user's data (§3).
-5. Reads privacy stages (`private/`, `secret/`) in order, treats an inaccessible stage as absent, and
-   never copies content from a more-protected stage into a less-protected one (§3.7).
+5. Treats an inaccessible `secret/` stage as absent, and never copies content out of it into the
+   base tree (§3.7).
 6. Discovers projects by scanning `$MOI_HOME/projects/` for directories containing a `project.yaml`
    (plus the root's home manifest, and any external project paths it chooses to track) (§4).
 7. Honors all core fields (§4.1), never repurposes their names, and treats `slug` as independent of the
