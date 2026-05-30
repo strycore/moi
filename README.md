@@ -34,6 +34,8 @@ tool or AI agent can read to learn who you are and what's going on in your life.
 │   └── receipts/       #   receipts category: "<date> - <recipient> - …"
 │       ├── recipients.txt
 │       └── 2026-05-28 - kaiser - receipt 3952863.pdf
+├── bookmarks/          # bookmarks as .url Internet Shortcuts, by category
+│   └── Reading/Rust the Book.url
 ├── secret/             # encryption stage — credentials, tokens, SSN, etc.
 │   └── …               #   layout is yours; secure it (encrypted volume / age blob / …)
 │
@@ -52,7 +54,7 @@ tool or AI agent can read to learn who you are and what's going on in your life.
 
 1. **The root is a folder you own.** `$MOI_HOME` defaults to `~/Documents`. moi reserves only a few
    names there — `bio.txt`, `avatar.txt`, `todo.txt`, `done.txt`, `project.yaml`,
-   `intake.log.jsonl`, `tasks/`, `notes/`, `journal/`, `drives/`, `email/`, `contacts/`, `records/`, `projects/`, `scripts/`, `secret/` — and ignores everything else.
+   `intake.log.jsonl`, `tasks/`, `notes/`, `journal/`, `drives/`, `email/`, `contacts/`, `records/`, `bookmarks/`, `projects/`, `scripts/`, `secret/` — and ignores everything else.
 2. **Personal context is the point.** `bio.txt` (how to help you), `avatar.txt` (an open key-value
    "this is me"), `notes/` (knowledge base), and `journal/` (dated log) are plain text; the only
    schema-validated personal file is `intake.log.jsonl` (a dose/use log). An agent reads these to gain

@@ -34,6 +34,8 @@ moi data lives under a directory referred to as `$MOI_HOME`. The default locatio
 │   └── receipts/
 │       ├── recipients.txt
 │       └── 2026-05-28 - kaiser - receipt 3952863.pdf
+├── bookmarks/          ← bookmarks as .url shortcuts, by category     (§3.12)
+│   └── Reading/Rust the Book.url
 ├── secret/             ← encrypted-at-rest stage: credentials,        (§3.7)
 │   │                       tokens, SSN/passport/CC, sensitive files
 │   └── …                   (layout is the user's; secured by user)
@@ -51,7 +53,7 @@ moi data lives under a directory referred to as `$MOI_HOME`. The default locatio
 
 The names moi reserves at the root are `bio.txt`, `avatar.txt`, `todo.txt`, `done.txt`, `project.yaml`,
 `intake.log.jsonl`, and the `tasks/`, `notes/`, `journal/`, `drives/`, `email/`, `contacts/`, `records/`,
-`projects/`, `scripts/`, and `secret/` directories (the last is the encryption stage, §3.7).
+`bookmarks/`, `projects/`, `scripts/`, and `secret/` directories (the last is the encryption stage, §3.7).
 Everything else under `$MOI_HOME` belongs to the user.
 
 These names are matched **case-insensitively**: a reader **MUST** treat `Records/`, `records/`, and
@@ -121,6 +123,8 @@ Two kinds of content live here:
   address book as `.vcf` vCards (§3.10).
 - **Documents** — `records/` keeps scanned documents & credentials in category subfolders (health,
   bank, rent, receipts, …) (§3.11).
+- **Bookmarks** — `bookmarks/` holds one `.url` shortcut per saved page, organized in free-form
+  category subfolders (§3.12).
 
 > **Sensitivity.** The whole tree is personal by default — it lives on a device the user controls. moi
 > says nothing about access control; protecting the tree (filesystem permissions, an encrypted home,
@@ -277,7 +281,32 @@ being when the record was issued or last effective — e.g.
 per line, e.g. `kaiser: Kaiser Permanente`), so a payee is always named the same way:
 `<YYYY-MM-DD> - <recipient> - <description>.<ext>`, e.g. `2026-05-28 - kaiser - receipt 3952863.pdf`.
 
-Records are sensitive and **SHOULD** usually live in a privacy stage (§3.7).
+Records are sensitive; anything that would hurt to leak (IDs, scans of legal documents, account
+statements) **SHOULD** live under `secret/` (§3.7).
+
+### 3.12 Bookmarks — `bookmarks/`
+
+`$MOI_HOME/bookmarks/` is a folder-organized bookmark library: one file per bookmark, free-form
+**category subfolders** chosen by the user, nested as deep as wanted.
+
+```
+bookmarks/Reading/Rust the Book.url
+bookmarks/Reading/Papers/Bitter Lesson.url
+bookmarks/Tools/Git Cheatsheet.url
+```
+
+Each bookmark is a Windows **Internet Shortcut** `.url` file — a plain-text INI document, recognized as
+a clickable shortcut by most file managers (Windows Explorer, KDE Dolphin, …):
+
+```
+[InternetShortcut]
+URL=https://example.com/some-page
+```
+
+The filename is the human title (filesystem-safe, §7); the file's first non-header line is the URL. A
+writer **MAY** add extra keys (`IconFile=`, or moi-specific `Tags=`, `Added=`, `Notes=`); a reader
+**MUST** preserve unknown keys on round-trip (§7). A bookmark **MAY** appear in more than one category
+either by duplicating the file or by symlink — moi takes no stance.
 
 ---
 
@@ -407,7 +436,7 @@ A conforming moi tool:
 
 1. Resolves `$MOI_HOME` (default `~/Documents`); treats it as a directory of the user's own files.
 2. Claims only the reserved root names (`bio.txt`, `avatar.txt`, `todo.txt`, `done.txt`, `project.yaml`,
-   `intake.log.jsonl`, `tasks/`, `notes/`, `journal/`, `drives/`, `email/`, `contacts/`, `records/`, `projects/`, `scripts/`, `secret/`); matches them case-insensitively (§1); leaves all other root entries untouched.
+   `intake.log.jsonl`, `tasks/`, `notes/`, `journal/`, `drives/`, `email/`, `contacts/`, `records/`, `bookmarks/`, `projects/`, `scripts/`, `secret/`); matches them case-insensitively (§1); leaves all other root entries untouched.
 3. Reads/writes `todo.txt` / `done.txt` in todo.txt format, when it touches tasks (§2).
 4. Treats `bio.txt`, `avatar.txt`, `notes/`, and `journal/` as free-form plain text (no schema), and
    `intake.log.jsonl` as a schema-validated structured log; never silently rewrites or deletes the
