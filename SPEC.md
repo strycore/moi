@@ -12,6 +12,8 @@ moi data lives under a directory referred to as `$MOI_HOME`. The default locatio
 ```
 ~/Documents/            ← $MOI_HOME (your real Documents folder)
 ├── avatar.txt           ← this is you (free-form)              (§3.4)
+├── avatar.png          ← your avatar: an image you pick         (§3.13)
+├── face.png            ← your face: a profile photo             (§3.13)
 ├── todo.txt            ← active tasks                                (§2)
 ├── done.txt            ← completed tasks                             (§2)
 ├── tasks/              ← in-progress task plans                      (§2.1)
@@ -52,9 +54,12 @@ moi data lives under a directory referred to as `$MOI_HOME`. The default locatio
 ```
 
 The names moi reserves at the root are `bio.txt`, `avatar.txt`, `todo.txt`, `done.txt`, `project.yaml`,
-`intake.log.jsonl`, and the `tasks/`, `notes/`, `journal/`, `drives/`, `email/`, `contacts/`, `records/`,
-`bookmarks/`, `projects/`, `scripts/`, and `secret/` directories (the last is the encryption stage, §3.7).
-Everything else under `$MOI_HOME` belongs to the user.
+`intake.log.jsonl`, the image files `avatar.<ext>` and `face.<ext>` (§3.13), and the `tasks/`, `notes/`,
+`journal/`, `drives/`, `email/`, `contacts/`, `records/`, `bookmarks/`, `projects/`, `scripts/`, and
+`secret/` directories (the last is the encryption stage, §3.7). The reserved `avatar` and `face` images
+are matched by **stem** — any common image extension counts — so `avatar.txt` (the document) and
+`avatar.png` (the image) are distinct reserved entries that coexist. Everything else under `$MOI_HOME`
+belongs to the user.
 
 These names are matched **case-insensitively**: a reader **MUST** treat `Records/`, `records/`, and
 `RECORDS/` as the same reserved entry, and **MUST** preserve whatever casing the user chose rather than
@@ -125,6 +130,8 @@ Two kinds of content live here:
   bank, rent, receipts, …) (§3.11).
 - **Bookmarks** — `bookmarks/` holds one `.url` shortcut per saved page, organized in free-form
   category subfolders (§3.12).
+- **Pictures** — `avatar.<ext>` is the image you pick to represent yourself; `face.<ext>` is a photo of
+  your actual face (§3.13).
 
 > **Sensitivity.** The whole tree is personal by default — it lives on a device the user controls. moi
 > says nothing about access control; protecting the tree (filesystem permissions, an encrypted home,
@@ -308,6 +315,30 @@ writer **MAY** add extra keys (`IconFile=`, or moi-specific `Tags=`, `Added=`, `
 **MUST** preserve unknown keys on round-trip (§7). A bookmark **MAY** appear in more than one category
 either by duplicating the file or by symlink — moi takes no stance.
 
+### 3.13 Pictures — `avatar.<ext>` and `face.<ext>`
+
+Two optional images at the root put a face — and a personality — to the textual identity of `avatar.txt`
+(§3.4):
+
+- **`avatar.<ext>` — your avatar.** The image you *choose* to represent yourself. It need not be your
+  face: a mascot, a favorite thing, a drawing, a logo — whatever you'd put as your picture (e.g. a
+  capybara in a suit). It is to `avatar.txt` what a chosen icon is to a written self-description.
+- **`face.<ext>` — your face.** An actual photograph of you — the "profile picture" / portrait an agent
+  or contact would use to recognize the real person. (Distinct from the avatar precisely because the
+  avatar may be anything.)
+
+Each is a single image file whose **stem** is the reserved name (`avatar` or `face`, matched
+case-insensitively, §1) and whose extension is any common raster or vector image format —
+`.png`, `.jpg`/`.jpeg`, `.webp`, `.gif`, `.avif`, or `.svg`. A reader resolves the picture by scanning
+the root for that stem with an image extension. There **SHOULD** be at most one file per stem; if a tree
+somehow holds several (e.g. `avatar.png` and `avatar.jpg`), a reader **MAY** pick any and a writer
+replacing the image **SHOULD** remove the other variants so a single file remains. Writers create these
+with filesystem-safe names (they already are) and the usual atomic write (§7).
+
+Both are **OPTIONAL** and, being ordinary image files, are portable to anything that shows pictures. A
+face photograph is personal; treat it with the same care as the rest of the tree, and a user who
+considers it sensitive **MAY** keep it under `secret/` (§3.7) instead.
+
 ---
 
 ## 4. Projects
@@ -435,8 +466,8 @@ normative; the techniques below are the **RECOMMENDED** ways to satisfy them.
 A conforming moi tool:
 
 1. Resolves `$MOI_HOME` (default `~/Documents`); treats it as a directory of the user's own files.
-2. Claims only the reserved root names (`bio.txt`, `avatar.txt`, `todo.txt`, `done.txt`, `project.yaml`,
-   `intake.log.jsonl`, `tasks/`, `notes/`, `journal/`, `drives/`, `email/`, `contacts/`, `records/`, `bookmarks/`, `projects/`, `scripts/`, `secret/`); matches them case-insensitively (§1); leaves all other root entries untouched.
+2. Claims only the reserved root names (`bio.txt`, `avatar.txt`, `avatar.<ext>` and `face.<ext>` images,
+   `todo.txt`, `done.txt`, `project.yaml`, `intake.log.jsonl`, `tasks/`, `notes/`, `journal/`, `drives/`, `email/`, `contacts/`, `records/`, `bookmarks/`, `projects/`, `scripts/`, `secret/`); matches them case-insensitively (§1); leaves all other root entries untouched.
 3. Reads/writes `todo.txt` / `done.txt` in todo.txt format, when it touches tasks (§2).
 4. Treats `bio.txt`, `avatar.txt`, `notes/`, and `journal/` as free-form plain text (no schema), and
    `intake.log.jsonl` as a schema-validated structured log; never silently rewrites or deletes the
