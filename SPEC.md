@@ -14,6 +14,8 @@ moi data lives under a directory referred to as `$MOI_HOME`. The default locatio
 ├── avatar.txt           ← this is you (free-form)              (§3.4)
 ├── avatar.png          ← your avatar: an image you pick         (§3.13)
 ├── face.png            ← your face: a profile photo             (§3.13)
+├── identity.pub        ← your public identity key               (§3.14)
+├── public.json         ← signed, public "what I share" facets   (§3.15)
 ├── todo.txt            ← active tasks                                (§2)
 ├── done.txt            ← completed tasks                             (§2)
 ├── tasks/              ← in-progress task plans                      (§2.1)
@@ -54,12 +56,12 @@ moi data lives under a directory referred to as `$MOI_HOME`. The default locatio
 ```
 
 The names moi reserves at the root are `bio.txt`, `avatar.txt`, `todo.txt`, `done.txt`, `project.yaml`,
-`intake.log.jsonl`, the image files `avatar.<ext>` and `face.<ext>` (§3.13), and the `tasks/`, `notes/`,
-`journal/`, `drives/`, `email/`, `contacts/`, `records/`, `bookmarks/`, `projects/`, `scripts/`, and
-`secret/` directories (the last is the encryption stage, §3.7). The reserved `avatar` and `face` images
-are matched by **stem** — any common image extension counts — so `avatar.txt` (the document) and
-`avatar.png` (the image) are distinct reserved entries that coexist. Everything else under `$MOI_HOME`
-belongs to the user.
+`intake.log.jsonl`, the image files `avatar.<ext>` and `face.<ext>` (§3.13), `identity.pub` (§3.14),
+`public.json` (§3.15), and the `tasks/`, `notes/`, `journal/`, `drives/`, `email/`, `contacts/`,
+`records/`, `bookmarks/`, `projects/`, `scripts/`, and `secret/` directories (the last is the encryption
+stage, §3.7). The reserved `avatar` and `face` images are matched by **stem** — any common image
+extension counts — so `avatar.txt` (the document) and `avatar.png` (the image) are distinct reserved
+entries that coexist. Everything else under `$MOI_HOME` belongs to the user.
 
 These names are matched **case-insensitively**: a reader **MUST** treat `Records/`, `records/`, and
 `RECORDS/` as the same reserved entry, and **MUST** preserve whatever casing the user chose rather than
@@ -132,6 +134,8 @@ Two kinds of content live here:
   category subfolders (§3.12).
 - **Pictures** — `avatar.<ext>` is the image you pick to represent yourself; `face.<ext>` is a photo of
   your actual face (§3.13).
+- **Identity & presence** — `identity.pub` is your public identity key (its private half lives in
+  `secret/`, §3.7); `public.json` is the small, signed set of facets you choose to make public (§3.14–§3.15).
 
 > **Sensitivity.** The whole tree is personal by default — it lives on a device the user controls. moi
 > says nothing about access control; protecting the tree (filesystem permissions, an encrypted home,
@@ -339,6 +343,77 @@ Both are **OPTIONAL** and, being ordinary image files, are portable to anything 
 face photograph is personal; treat it with the same care as the rest of the tree, and a user who
 considers it sensitive **MAY** keep it under `secret/` (§3.7) instead.
 
+### 3.14 Identity — `identity.pub` (and the private key in `secret/`)
+
+A moi tree **MAY** have a cryptographic **identity**: a single
+[Ed25519](https://ed25519.cr.yp.to/) keypair that is the anchor for signing what you publish (§3.15) and,
+in future, for proving a new device is yours. The identity is **OPTIONAL** — a tree without one simply
+can't sign or be verified.
+
+- **Private key** — lives in `secret/` (§3.7), never in the base tree; **RECOMMENDED** path
+  `secret/identity.ed25519`. moi fixes neither its on-disk encoding nor how it is protected — on a phone
+  it **SHOULD** be a hardware-backed key (Android Keystore/StrongBox, iOS Secure Enclave) released by
+  biometric; on a desktop, a file in the encrypted `secret/` stage. A tool **MUST NOT** copy it into the
+  base tree or transmit it (§3.7).
+- **Public key** — published at `$MOI_HOME/identity.pub`, a single text line in the OpenSSH
+  `authorized_keys` style so it is human-pasteable and tool-friendly:
+
+  ```
+  moi-ed25519 <base64(32-byte public key)> <optional comment>
+  ```
+
+  This file is **safe to share**: it is how a contact pins you. The **identity id** is not stored
+  separately — it is the SHA-256 fingerprint of the 32 public-key bytes (a tool renders a short,
+  comparable form, e.g. the first 10 bytes base32-encoded), which is the value compared out-of-band when
+  two people verify each other.
+
+A tree **MUST NOT** contain more than one root identity. Per-device subkeys, certified by this root, are
+out of scope here (they belong to device enrollment, §12).
+
+### 3.15 Public presence — `public.json`
+
+`$MOI_HOME/public.json` is the small, **signed**, explicitly-curated set of facets you choose to make
+public — your nickname, pronouns, the bands whose shirts you'd wear all at once. It is the *only* file
+moi ever advertises (§12), and it exists precisely so that going public is a deliberate act: a tool
+**MUST NOT** derive it from `avatar.txt`, `notes/`, or anything else automatically, and **MUST NOT**
+broadcast anything but this file. It is **OPTIONAL** and, by the rule of §3.6, **off until the user
+writes it**.
+
+It is a JSON object conforming to [`schema/public.schema.json`](schema/public.schema.json):
+
+```json
+{
+  "v": 1,
+  "key": "<base64 Ed25519 public key — matches identity.pub>",
+  "facets": {
+    "nick": "alexd",
+    "pronouns": "they/them",
+    "bands": ["The Cure", "Boards of Canada", "Aphex Twin"]
+  },
+  "ts": "2026-06-01T12:00:00Z",
+  "sig": "<base64 Ed25519 signature>"
+}
+```
+
+- `v` (integer) and `key` (the signer's public key) and `ts` (RFC 3339, with offset or `Z`) and `sig`
+  are the envelope; **`facets`** is an **open** key→value map (string, or array of strings), the same
+  spirit as the open keys of `avatar.txt` (§3.4) — `nick` and `pronouns` are suggested, the rest is
+  yours.
+- **Size.** The serialized document **MUST** be ≤ **1024 bytes** — it has to fit a presence beacon and
+  stay cheap to sign and relay. A writer that would exceed the cap drops facets rather than truncating
+  the JSON.
+- **Signature.** `sig` is the Ed25519 signature, by the key in `key`, over the
+  [JCS](https://www.rfc-editor.org/rfc/rfc8785) (RFC 8785) canonicalization of the document **with the
+  `sig` member removed**. A reader **MUST** verify it against `key`, and `key` **MUST** match
+  `identity.pub` (§3.14); a document that fails either check is treated as absent.
+
+> **What signing does and does not buy.** A contact who already holds your `identity.pub` can verify a
+> `public.json` is genuinely yours and unmodified. A **stranger cannot** — they have no trust anchor, so
+> to them the facets are unauthenticated and, like a real band shirt, trivially spoofable. That is
+> acceptable for public presence; it is *not* a substitute for the verified pairing of §12. And because a
+> stable signed beacon is a tracking vector, presence is opt-in, **off by default**, and a tool
+> advertising it **SHOULD** let the user rotate or pause it (§12).
+
 ---
 
 ## 4. Projects
@@ -467,7 +542,7 @@ A conforming moi tool:
 
 1. Resolves `$MOI_HOME` (default `~/Documents`); treats it as a directory of the user's own files.
 2. Claims only the reserved root names (`bio.txt`, `avatar.txt`, `avatar.<ext>` and `face.<ext>` images,
-   `todo.txt`, `done.txt`, `project.yaml`, `intake.log.jsonl`, `tasks/`, `notes/`, `journal/`, `drives/`, `email/`, `contacts/`, `records/`, `bookmarks/`, `projects/`, `scripts/`, `secret/`); matches them case-insensitively (§1); leaves all other root entries untouched.
+   `identity.pub`, `public.json`, `todo.txt`, `done.txt`, `project.yaml`, `intake.log.jsonl`, `tasks/`, `notes/`, `journal/`, `drives/`, `email/`, `contacts/`, `records/`, `bookmarks/`, `projects/`, `scripts/`, `secret/`); matches them case-insensitively (§1); leaves all other root entries untouched.
 3. Reads/writes `todo.txt` / `done.txt` in todo.txt format, when it touches tasks (§2).
 4. Treats `bio.txt`, `avatar.txt`, `notes/`, and `journal/` as free-form plain text (no schema), and
    `intake.log.jsonl` as a schema-validated structured log; never silently rewrites or deletes the
@@ -482,6 +557,9 @@ A conforming moi tool:
 9. Preserves unknown keys, namespaces, comments, and ordering on write (§4.2, §7).
 10. Writes files atomically (temp file + rename) so concurrent consumers never see a partial write (§7).
 11. Leaves unrecognized files and directories untouched.
+12. If it publishes presence, advertises only `public.json`, never auto-derives it, verifies its
+    signature against `identity.pub` before trusting it, and keeps the identity private key inside
+    `secret/` (§3.14–§3.15, §12).
 
 ---
 
@@ -558,3 +636,47 @@ maintenance tasks, anything that operates on the moi tree. Its reserved subfolde
 moi places no constraint on a script's language or form — shell, Python, a compiled binary. A script
 that writes into the tree is a moi tool and **MUST** follow the write rules (§7) and the relevant
 conventions, like any other consumer.
+
+---
+
+## 12. Presence and pairing (non-normative)
+
+This section is **informative**: moi defines the *files* of identity and presence (§3.14–§3.15); how a
+tool puts them on a wire is its own concern. It is recorded here so independent tools interoperate.
+
+There are two unrelated channels — keep them apart.
+
+### Public presence (the "moi nearby")
+
+A tool **MAY** advertise the user's `public.json` to people physically nearby, so a moi can be *seen* —
+the digital equivalent of the band shirt. The natural transports:
+
+- **LAN** — register a DNS-SD service `_moi._tcp` (mDNS/Bonjour/Avahi). The advert stays tiny; put a
+  short fingerprint and a fetch hint in the TXT record and serve the ≤1 KB `public.json` over a local
+  HTTP `GET` to anyone who asks.
+- **Bluetooth LE** — advertise a moi service UUID; expose `public.json` as a readable GATT
+  characteristic. The advert itself is only tens of bytes, so the document is *read after discovery*,
+  not packed into the beacon.
+
+A receiver verifies the signature against the sender's key (§3.15). The first time it sees a key it
+**trust-on-first-use** pins it; thereafter a changed key for the "same" nick is a red flag, not a silent
+swap. Because a steady signed beacon is trackable, presence is **opt-in and off by default**, and a tool
+**SHOULD** offer to pause it or rotate a short-lived display id.
+
+### Device enrollment (proving a new device is yours)
+
+Bringing a *fresh* install (say, moi on a new phone) into your identity is the high-security channel, and
+it is **not** a broadcast. The shape, to be specified fully later:
+
+1. The new device generates its **own** hardware-backed keypair (Keystore/Secure Enclave), released by
+   biometric.
+2. It pairs with an already-trusted device over the same LAN/BLE and the two perform a mutually
+   authenticated exchange whose integrity the user confirms by comparing a **short authenticated string**
+   (a few digits or emoji shown on both) — this is what stops a man-in-the-middle.
+3. The trusted device signs a **device certificate** binding the new key under the root identity
+   (§3.14). Multi-factor falls out naturally: *possession* of an enrolled device + *inherence* (biometric)
+   + later a *hardware* factor (FIDO2 / YubiKey) as an additional signer.
+
+Only the root public key and issued device certificates are shareable; the private keys never leave their
+secure element, and nothing here is ever placed in the base tree (§3.7). A full normative protocol —
+certificate format, revocation, the FIDO2 binding — is deferred to a future revision.
