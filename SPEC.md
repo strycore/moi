@@ -15,7 +15,7 @@ moi data lives under a directory referred to as `$MOI_HOME`. The default locatio
 ├── avatar.png          ← your avatar: an image you pick         (§3.13)
 ├── face.png            ← your face: a profile photo             (§3.13)
 ├── identity.pub        ← your public identity key               (§3.14)
-├── public.json         ← signed, public "what I share" facets   (§3.15)
+├── public.txt          ← signed, public "what I share" facets   (§3.15)
 ├── todo.txt            ← active tasks                                (§2)
 ├── done.txt            ← completed tasks                             (§2)
 ├── tasks/              ← in-progress task plans                      (§2.1)
@@ -57,7 +57,7 @@ moi data lives under a directory referred to as `$MOI_HOME`. The default locatio
 
 The names moi reserves at the root are `bio.txt`, `avatar.txt`, `todo.txt`, `done.txt`, `project.yaml`,
 `intake.log.jsonl`, the image files `avatar.<ext>` and `face.<ext>` (§3.13), `identity.pub` (§3.14),
-`public.json` (§3.15), and the `tasks/`, `notes/`, `journal/`, `drives/`, `email/`, `contacts/`,
+`public.txt` (§3.15), and the `tasks/`, `notes/`, `journal/`, `drives/`, `email/`, `contacts/`,
 `records/`, `bookmarks/`, `projects/`, `scripts/`, and `secret/` directories (the last is the encryption
 stage, §3.7). The reserved `avatar` and `face` images are matched by **stem** — any common image
 extension counts — so `avatar.txt` (the document) and `avatar.png` (the image) are distinct reserved
@@ -135,7 +135,7 @@ Two kinds of content live here:
 - **Pictures** — `avatar.<ext>` is the image you pick to represent yourself; `face.<ext>` is a photo of
   your actual face (§3.13).
 - **Identity & presence** — `identity.pub` is your public identity key (its private half lives in
-  `secret/`, §3.7); `public.json` is the small, signed set of facets you choose to make public (§3.14–§3.15).
+  `secret/`, §3.7); `public.txt` is the small, signed set of facets you choose to make public (§3.14–§3.15).
 
 > **Sensitivity.** The whole tree is personal by default — it lives on a device the user controls. moi
 > says nothing about access control; protecting the tree (filesystem permissions, an encrypted home,
@@ -370,45 +370,46 @@ can't sign or be verified.
 A tree **MUST NOT** contain more than one root identity. Per-device subkeys, certified by this root, are
 out of scope here (they belong to device enrollment, §12).
 
-### 3.15 Public presence — `public.json`
+### 3.15 Public presence — `public.txt`
 
-`$MOI_HOME/public.json` is the small, **signed**, explicitly-curated set of facets you choose to make
+`$MOI_HOME/public.txt` is the small, **signed**, explicitly-curated set of facets you choose to make
 public — your nickname, pronouns, the bands whose shirts you'd wear all at once. It is the *only* file
 moi ever advertises (§12), and it exists precisely so that going public is a deliberate act: a tool
 **MUST NOT** derive it from `avatar.txt`, `notes/`, or anything else automatically, and **MUST NOT**
 broadcast anything but this file. It is **OPTIONAL** and, by the rule of §3.6, **off until the user
 writes it**.
 
-It is a JSON object conforming to [`schema/public.schema.json`](schema/public.schema.json):
+It is **line-oriented `key: value` plain text** — the same shape as `avatar.txt` (§3.4), because in a
+≤ 1 KB beacon every byte counts and braces, quotes, and repeated `"key":` punctuation are waste. UTF-8,
+one `key: value` per line, LF (`\n`) line endings:
 
-```json
-{
-  "v": 1,
-  "key": "<base64 Ed25519 public key — matches identity.pub>",
-  "facets": {
-    "nick": "alexd",
-    "pronouns": "they/them",
-    "bands": ["The Cure", "Boards of Canada", "Aphex Twin"]
-  },
-  "ts": "2026-06-01T12:00:00Z",
-  "sig": "<base64 Ed25519 signature>"
-}
+```
+v: 1
+nick: alexd
+pronouns: they/them
+bands: The Cure, Boards of Canada, Aphex Twin
+ts: 2026-06-01T12:00:00Z
+key: <base64 of the 32-byte Ed25519 public key — matches identity.pub>
+sig: <base64 of the 64-byte Ed25519 signature>
 ```
 
-- `v` (integer) and `key` (the signer's public key) and `ts` (RFC 3339, with offset or `Z`) and `sig`
-  are the envelope; **`facets`** is an **open** key→value map (string, or array of strings), the same
-  spirit as the open keys of `avatar.txt` (§3.4) — `nick` and `pronouns` are suggested, the rest is
-  yours.
-- **Size.** The serialized document **MUST** be ≤ **1024 bytes** — it has to fit a presence beacon and
-  stay cheap to sign and relay. A writer that would exceed the cap drops facets rather than truncating
-  the JSON.
-- **Signature.** `sig` is the Ed25519 signature, by the key in `key`, over the
-  [JCS](https://www.rfc-editor.org/rfc/rfc8785) (RFC 8785) canonicalization of the document **with the
-  `sig` member removed**. A reader **MUST** verify it against `key`, and `key` **MUST** match
-  `identity.pub` (§3.14); a document that fails either check is treated as absent.
+- **Facets** are **open** keys, in the spirit of `avatar.txt` (§3.4): `nick` and `pronouns` are
+  suggested, the rest is yours. A multi-value facet (like `bands`) is a comma-separated list, exactly as
+  `avatar.txt` writes `languages:` or `interests:`.
+- **Reserved keys.** `v`, `ts`, `key`, and `sig` name the envelope and **MUST NOT** be used as facet
+  names: `v` is the format version (`1`); `ts` is an RFC 3339 timestamp (offset or `Z`) so a reader can
+  prefer the freshest copy; `key` is the signer's public key; `sig` is the signature. `v` **MUST** be the
+  first line and `sig` **MUST** be the last.
+- **Size.** The whole file **MUST** be ≤ **1024 bytes**. A writer that would exceed the cap drops facets
+  rather than producing a malformed file.
+- **Signature.** Because the file is already plain text, it is its own canonical form — no JSON, no
+  canonicalization algorithm. `sig` is the Ed25519 signature, by `key`, over **every byte of the file
+  before the `sig:` line** (i.e. up to and including the newline that ends the `key:`/last non-sig line).
+  A reader **MUST** verify it against `key`, and `key` **MUST** equal `identity.pub` (§3.14); a file that
+  fails either check is treated as absent.
 
 > **What signing does and does not buy.** A contact who already holds your `identity.pub` can verify a
-> `public.json` is genuinely yours and unmodified. A **stranger cannot** — they have no trust anchor, so
+> `public.txt` is genuinely yours and unmodified. A **stranger cannot** — they have no trust anchor, so
 > to them the facets are unauthenticated and, like a real band shirt, trivially spoofable. That is
 > acceptable for public presence; it is *not* a substitute for the verified pairing of §12. And because a
 > stable signed beacon is a tracking vector, presence is opt-in, **off by default**, and a tool
@@ -542,7 +543,7 @@ A conforming moi tool:
 
 1. Resolves `$MOI_HOME` (default `~/Documents`); treats it as a directory of the user's own files.
 2. Claims only the reserved root names (`bio.txt`, `avatar.txt`, `avatar.<ext>` and `face.<ext>` images,
-   `identity.pub`, `public.json`, `todo.txt`, `done.txt`, `project.yaml`, `intake.log.jsonl`, `tasks/`, `notes/`, `journal/`, `drives/`, `email/`, `contacts/`, `records/`, `bookmarks/`, `projects/`, `scripts/`, `secret/`); matches them case-insensitively (§1); leaves all other root entries untouched.
+   `identity.pub`, `public.txt`, `todo.txt`, `done.txt`, `project.yaml`, `intake.log.jsonl`, `tasks/`, `notes/`, `journal/`, `drives/`, `email/`, `contacts/`, `records/`, `bookmarks/`, `projects/`, `scripts/`, `secret/`); matches them case-insensitively (§1); leaves all other root entries untouched.
 3. Reads/writes `todo.txt` / `done.txt` in todo.txt format, when it touches tasks (§2).
 4. Treats `bio.txt`, `avatar.txt`, `notes/`, and `journal/` as free-form plain text (no schema), and
    `intake.log.jsonl` as a schema-validated structured log; never silently rewrites or deletes the
@@ -557,7 +558,7 @@ A conforming moi tool:
 9. Preserves unknown keys, namespaces, comments, and ordering on write (§4.2, §7).
 10. Writes files atomically (temp file + rename) so concurrent consumers never see a partial write (§7).
 11. Leaves unrecognized files and directories untouched.
-12. If it publishes presence, advertises only `public.json`, never auto-derives it, verifies its
+12. If it publishes presence, advertises only `public.txt`, never auto-derives it, verifies its
     signature against `identity.pub` before trusting it, and keeps the identity private key inside
     `secret/` (§3.14–§3.15, §12).
 
@@ -648,13 +649,13 @@ There are two unrelated channels — keep them apart.
 
 ### Public presence (the "moi nearby")
 
-A tool **MAY** advertise the user's `public.json` to people physically nearby, so a moi can be *seen* —
+A tool **MAY** advertise the user's `public.txt` to people physically nearby, so a moi can be *seen* —
 the digital equivalent of the band shirt. The natural transports:
 
 - **LAN** — register a DNS-SD service `_moi._tcp` (mDNS/Bonjour/Avahi). The advert stays tiny; put a
-  short fingerprint and a fetch hint in the TXT record and serve the ≤1 KB `public.json` over a local
+  short fingerprint and a fetch hint in the TXT record and serve the ≤1 KB `public.txt` over a local
   HTTP `GET` to anyone who asks.
-- **Bluetooth LE** — advertise a moi service UUID; expose `public.json` as a readable GATT
+- **Bluetooth LE** — advertise a moi service UUID; expose `public.txt` as a readable GATT
   characteristic. The advert itself is only tens of bytes, so the document is *read after discovery*,
   not packed into the beacon.
 
