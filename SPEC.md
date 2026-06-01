@@ -400,7 +400,9 @@ sig: <base64 of the 64-byte Ed25519 signature>
   names: `v` is the format version (`1`); `ts` is an RFC 3339 timestamp (offset or `Z`) so a reader can
   prefer the freshest copy; `key` is the signer's public key; `sig` is the signature. `v` **MUST** be the
   first line and `sig` **MUST** be the last.
-- **Size.** The whole file **MUST** be ≤ **1024 bytes**. A writer that would exceed the cap drops facets
+- **Size.** Keep it small — it has to ride in a QR code and a presence beacon. A writer **SHOULD** keep
+  the whole file ≤ **256 bytes**, which fits a QR code that scans effortlessly across a room, and
+  **MUST** keep it ≤ **1024 bytes** (still a single, if denser, QR). Over the cap, a writer drops facets
   rather than producing a malformed file.
 - **Signature.** Because the file is already plain text, it is its own canonical form — no JSON, no
   canonicalization algorithm. `sig` is the Ed25519 signature, by `key`, over **every byte of the file
@@ -658,6 +660,10 @@ the digital equivalent of the band shirt. The natural transports:
 - **Bluetooth LE** — advertise a moi service UUID; expose `public.txt` as a readable GATT
   characteristic. The advert itself is only tens of bytes, so the document is *read after discovery*,
   not packed into the beacon.
+- **In person (QR)** — render `public.txt` (or, smaller still, just `identity.pub`) as a **QR code** the
+  other person scans face to face. This is why the file is kept tiny (§3.15): ≤ 256 bytes is a QR that
+  scans effortlessly. No network at all; the in-person context is itself the trust signal a TOFU pin
+  rides on.
 
 A receiver verifies the signature against the sender's key (§3.15). The first time it sees a key it
 **trust-on-first-use** pins it; thereafter a changed key for the "same" nick is a red flag, not a silent
@@ -673,7 +679,8 @@ it is **not** a broadcast. The shape, to be specified fully later:
    biometric.
 2. It pairs with an already-trusted device over the same LAN/BLE and the two perform a mutually
    authenticated exchange whose integrity the user confirms by comparing a **short authenticated string**
-   (a few digits or emoji shown on both) — this is what stops a man-in-the-middle.
+   (a few digits or emoji shown on both, or one device's offer shown as a **QR** the other scans) — this
+   is what stops a man-in-the-middle.
 3. The trusted device signs a **device certificate** binding the new key under the root identity
    (§3.14). Multi-factor falls out naturally: *possession* of an enrolled device + *inherence* (biometric)
    + later a *hardware* factor (FIDO2 / YubiKey) as an additional signer.
