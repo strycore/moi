@@ -479,6 +479,16 @@ is greppable like the rest of the tree. It **MAY** hold any number of **pictures
 **3D scan** (`.glb`, `.stl`, …) when you have the gear to make one. These extras are ordinary files
 beside `spec.txt`; a reader keys the item off `spec.txt` and leaves the rest untouched (§7).
 
+**Owned vs. wished-for.** An item's `spec.txt` **MAY** carry a `status:` — `owned` (the default when
+absent) or `wishlist` for something you're still researching. A **research group** is just a group folder
+named for a buying decision (`bedroom speakers/`) whose items are candidates: a hardware-savvy agent
+populates each one's `spec.txt` with the model's properties, street `price:`, a `source:` URL to the
+maker or store, and a short recommendation (`verdict:` / `pros:` / `cons:`). When you buy one, **move its
+folder** into the fitting owned group — bedroom speakers graduate to `audio gear/` — and flip `status:`
+to `owned`, filling in `SN:`, `purchased:`, and the rest. The research group can then be deleted, or kept
+as a record of the alternatives you weighed. This is the buy-side mirror of the sell-side `marketplace/`
+(§3.18).
+
 ### 3.18 Marketplace — `marketplace/`
 
 `$MOI_HOME/marketplace/` lists the things you want to **sell or give away**. Listing an item is putting

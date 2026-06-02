@@ -1,0 +1,20 @@
+# spec.txt — a research candidate, not yet owned (status: wishlist).
+# A hardware agent filled this in; buy one and it moves to e.g. audio gear/.
+
+name: KEF LSX II
+maker: KEF
+type: powered bookshelf speakers
+status: wishlist
+year: 2022
+price: 1399 EUR (pair)
+source: https://www.kef.com/products/lsx-ii
+
+# properties
+connection: HDMI ARC, Wi-Fi, Bluetooth, USB-C, optical
+power: 200W total
+finishes: mineral white, carbon black, lava red
+
+recommended by: hardware agent (2026-05-31)
+verdict: top pick — wireless, no separate amp, ideal for a bedroom
+pros: compact, streams everything, excellent imaging
+cons: pricey; each speaker needs mains power

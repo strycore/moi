@@ -1,0 +1,17 @@
+# spec.txt — a research candidate, not yet owned (status: wishlist).
+
+name: Edifier R1280T
+maker: Edifier
+type: active bookshelf speakers
+status: wishlist
+price: 120 EUR (pair)
+source: https://www.edifier.com/global/p/active-speaker/r1280t
+
+# properties
+connection: 2x RCA, AUX
+power: 42W total
+
+recommended by: hardware agent (2026-05-31)
+verdict: budget pick — great value if you can live without wireless
+pros: cheap, warm sound, dual inputs, remote included
+cons: wired only, no app or streaming
