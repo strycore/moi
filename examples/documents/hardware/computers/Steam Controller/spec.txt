@@ -1,0 +1,21 @@
+# spec.txt — hardware spec sheet, open key-value (same shape as avatar.txt).
+
+name: Steam Controller
+maker: Valve
+type: game controller
+PN: 1001
+SN: SC-2016-441207
+year: 2016
+purchased: 2016-11-10
+purchased from: Steam Store
+condition: good — light wear on grips
+
+# properties
+connection: 2.4GHz USB dongle, Bluetooth
+power: 2x AA
+features: dual trackpads, gyro, haptics
+
+# listed for sale — see marketplace/ (this folder is symlinked there)
+for sale: yes
+price: 35 EUR
+listed: 2026-05-30

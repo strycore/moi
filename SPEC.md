@@ -58,8 +58,8 @@ moi data lives under a directory referred to as `$MOI_HOME`. The default locatio
 The names moi reserves at the root are `bio.txt`, `avatar.txt`, `todo.txt`, `done.txt`, `project.yaml`,
 `intake.log.jsonl`, the image files `avatar.<ext>` and `face.<ext>` (§3.13), `identity.pub` (§3.14),
 `public.txt` (§3.15), and the `tasks/`, `notes/`, `journal/`, `drives/`, `email/`, `contacts/`,
-`records/`, `bookmarks/`, `projects/`, `scripts/`, and `secret/` directories (the last is the encryption
-stage, §3.7). The reserved `avatar` and `face` images are matched by **stem** — any common image
+`records/`, `bookmarks/`, `playlists/`, `music/`, `hardware/`, `marketplace/`, `projects/`, `scripts/`,
+and `secret/` directories (the last is the encryption stage, §3.7). The reserved `avatar` and `face` images are matched by **stem** — any common image
 extension counts — so `avatar.txt` (the document) and `avatar.png` (the image) are distinct reserved
 entries that coexist. Everything else under `$MOI_HOME` belongs to the user.
 
@@ -417,6 +417,83 @@ sig: <base64 of the 64-byte Ed25519 signature>
 > stable signed beacon is a tracking vector, presence is opt-in, **off by default**, and a tool
 > advertising it **SHOULD** let the user rotate or pause it (§12).
 
+### 3.16 Playlists — `playlists/`
+
+`$MOI_HOME/playlists/` holds music playlists, one **extended `.m3u8`** file each — UTF-8 m3u, the
+format every player on every platform reads, the `8` declaring the encoding. Name each by its human
+title, filesystem-safe (§7): `playlists/Late night driving.m3u8`.
+
+A playlist **MUST NOT** contain absolute paths or `file://`/`http(s)` locators to local media. Every
+track is a path **relative to a music library root**, anchored at the moi root as `music/` — a directory
+or a symlink to wherever the collection actually lives (often a large external disk, catalogued in §3.8),
+so the playlist never encodes the absolute location. An **album** is then simply a relative directory
+under that root, `AlbumArtist/Album/`, the canonical tags-derived layout that ripper and library tools
+(beets, MusicBrainz Picard) already produce — identical on every machine, which is what makes the path
+portable.
+
+Relative paths still break when you re-rip, re-encode, or reorganize. The portable fix the music world
+settled on — the real progress since `.pls`/`.m3u` — is **content identity**: the MusicBrainz **Release**
+and **Recording** IDs, and the **AcoustID** audio fingerprint (computed from the sound itself) that maps
+to them, all carried in the file tags. A moi playlist **MAY** record these alongside each entry as
+ordinary m3u **comment lines**, which conforming players ignore, so a moi-aware resolver re-finds a track
+by identity when its path has moved:
+
+```m3u8
+#EXTM3U
+#EXTINF:367,Boards of Canada - Roygbiv
+#MOI-MBID:recording=0a3d...;release=5f2c...
+#MOI-ACOUSTID:e7b1...
+Boards of Canada/Music Has the Right to Children/05 Roygbiv.flac
+```
+
+A reader resolves each entry by **relative path first**, falling back to the embedded identifier (matched
+against the library's tags) when the path is missing. Because the identity rides in ignored comments, a
+stock player still plays the file while a moi tool gets the robust layer — the dual-consumer pattern used
+throughout moi. A writer **MUST** preserve `#EXTINF` and any unknown `#` directives on round-trip (§7).
+**XSPF** ("spiff") is the richer XML alternative that models exactly this split natively — a relative
+`<location>` plus a MusicBrainz `<identifier>` — and a tool **MAY** also write `.xspf`; but `.m3u8` is
+moi's portable default.
+
+### 3.17 Hardware — `hardware/`
+
+`$MOI_HOME/hardware/` is an inventory of your physical things, two levels deep: a **group** subfolder
+(open set — `computers/`, `kitchen/`, `music studio/`, `photography/`, …), and inside it **one subfolder
+per item**, named for the thing:
+
+```
+hardware/computers/Framework 16/
+hardware/computers/Razer Huntsman V2 Tenkeyless/
+hardware/photography/Sony A7 IV/
+```
+
+Each item folder carries a **spec sheet**, `spec.txt` — open `key: value` plain text, the same shape as
+`avatar.txt` (§3.4). It records identifiers (`PN:`, `SN:`), `year:` made, `purchased:` date and
+`purchased from:`, and the object's **properties** (`RAM: 16GB`, `CPU: …`) — values you can copy from the
+maker's site or a store listing (Amazon, Target). **Accessories** live as an indented `accessories:`
+sub-list (e.g. the RGB LED matrix panel and the discrete-GPU module of a Framework 16), each with its own
+ids and notes.
+
+The folder **SHOULD** also hold the **manual** — the original `manual.pdf`, or scanned images of a paper
+one — and, alongside it, a searchable text extract (`manual.txt`) from `pdftotext` or OCR, so the manual
+is greppable like the rest of the tree. It **MAY** hold any number of **pictures** of the object, and a
+**3D scan** (`.glb`, `.stl`, …) when you have the gear to make one. These extras are ordinary files
+beside `spec.txt`; a reader keys the item off `spec.txt` and leaves the rest untouched (§7).
+
+### 3.18 Marketplace — `marketplace/`
+
+`$MOI_HOME/marketplace/` lists the things you want to **sell or give away**. Listing an item is putting
+it here — most naturally as a **symlink** to its folder under `hardware/` (§3.17), so the spec sheet,
+manual, and pictures are shared rather than copied:
+
+```
+marketplace/Steam Controller  ->  ../hardware/computers/Steam Controller
+```
+
+A listed item's `spec.txt` carries a **price** tag: `price: 35 EUR` (use `price: free` or `price: 0` for
+a giveaway), plus optional `for sale: yes`, `condition:`, and `listed:` (date). Removing the symlink
+delists it; the hardware entry stays put. An item you never catalogued under `hardware/` **MAY** instead
+be a plain folder here with its own `spec.txt`.
+
 ---
 
 ## 4. Projects
@@ -545,7 +622,7 @@ A conforming moi tool:
 
 1. Resolves `$MOI_HOME` (default `~/Documents`); treats it as a directory of the user's own files.
 2. Claims only the reserved root names (`bio.txt`, `avatar.txt`, `avatar.<ext>` and `face.<ext>` images,
-   `identity.pub`, `public.txt`, `todo.txt`, `done.txt`, `project.yaml`, `intake.log.jsonl`, `tasks/`, `notes/`, `journal/`, `drives/`, `email/`, `contacts/`, `records/`, `bookmarks/`, `projects/`, `scripts/`, `secret/`); matches them case-insensitively (§1); leaves all other root entries untouched.
+   `identity.pub`, `public.txt`, `todo.txt`, `done.txt`, `project.yaml`, `intake.log.jsonl`, `tasks/`, `notes/`, `journal/`, `drives/`, `email/`, `contacts/`, `records/`, `bookmarks/`, `playlists/`, `music/`, `hardware/`, `marketplace/`, `projects/`, `scripts/`, `secret/`); matches them case-insensitively (§1); leaves all other root entries untouched.
 3. Reads/writes `todo.txt` / `done.txt` in todo.txt format, when it touches tasks (§2).
 4. Treats `bio.txt`, `avatar.txt`, `notes/`, and `journal/` as free-form plain text (no schema), and
    `intake.log.jsonl` as a schema-validated structured log; never silently rewrites or deletes the

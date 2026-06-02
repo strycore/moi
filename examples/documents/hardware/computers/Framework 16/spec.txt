@@ -1,0 +1,37 @@
+# spec.txt — hardware spec sheet, open key-value (same shape as avatar.txt).
+# Properties can be copied from the maker's site or a store listing; ids from the label.
+
+name: Framework Laptop 16
+maker: Framework
+type: modular laptop
+PN: FRANBMBA01
+SN: FW16-2024-0009183
+year: 2024
+purchased: 2024-06-15
+purchased from: frame.work
+warranty until: 2026-06-15
+condition: excellent
+
+# properties
+CPU: AMD Ryzen 9 7940HS
+RAM: 32GB DDR5-5600
+storage: 1TB WD Black SN850X NVMe
+display: 16" 2560x1600 165Hz matte
+weight: 2.1kg
+OS: Fedora
+
+accessories:
+  Radeon RX 7700S Graphics Module:
+    PN: FRABGB01
+    purchased: 2024-06-15
+    notes: discrete GPU expansion bay module
+  RGB LED Matrix Spacer:
+    purchased: 2024-08-02
+    notes: 9x34 programmable LED panel, fills an input-module slot
+  Expansion Cards:
+    2x USB-C, 1x HDMI, 1x microSD
+
+# extras living beside this file
+manual: manual.pdf (searchable extract in manual.txt)
+pictures: front.jpg, ports.jpg
+3d scan: framework16.glb

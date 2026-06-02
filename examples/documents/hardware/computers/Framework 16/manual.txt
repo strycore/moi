@@ -1,0 +1,14 @@
+# manual.txt — searchable text extracted from manual.pdf (pdftotext / OCR).
+# Kept beside the PDF so the manual is greppable like the rest of the tree.
+
+Framework Laptop 16 — Quick Start Guide
+
+1. Insert Expansion Cards into the bays on either side until they click.
+2. Install Input Modules (keyboard, numpad, RGB LED Matrix spacer) onto the
+   midplate magnets; they seat flush and lock automatically.
+3. To fit the Graphics Module, power off, remove the rear Expansion Bay shell,
+   slide in the module, and re-seat the shell.
+
+Powering on: hold the power button (top-right of the keyboard deck) for 1s.
+Charging: USB-C PD, 180W adapter included. Any USB-C port may be used to charge.
+Recovery: hold F2 during boot for BIOS; the bootloader menu is on F12.
