@@ -18,38 +18,38 @@ moi data lives under a directory referred to as `$MOI_HOME`. The default locatio
 ├── public.txt          ← signed, public "what I share" facets   (§3.15)
 ├── todo.txt            ← active tasks                                (§2)
 ├── done.txt            ← completed tasks                             (§2)
-├── tasks/              ← in-progress task plans                      (§2.1)
+├── Tasks/              ← in-progress task plans                      (§2.1)
 │   ├── finish-the-novel.md
 │   └── done/           ←   completed plans, archived by YYYY/MM/DD
-├── notes/              ← free-form personal knowledge base           (§3)
+├── Notes/              ← free-form personal knowledge base           (§3)
 │   ├── health.md
 │   └── finances.md
-├── journal/            ← dated log entries                           (§3)
+├── Journal/            ← dated log entries                           (§3)
 │   └── 2026-05-26-some-title.md
 ├── intake.log.jsonl    ← append-only dose/use event log              (§3.5)
-├── drives/             ← catalog of your storage, one file per drive  (§3.8)
+├── Drives/             ← catalog of your storage, one file per drive  (§3.8)
 │   └── vault.yaml      ←   named by label; uuid lives inside
-├── email/              ← saved .eml messages, by account + date       (§3.9)
+├── Email/              ← saved .eml messages, by account + date       (§3.9)
 │   └── you@example.com/2026/05/28/HH-MM-SS - sender - subject.eml
-├── contacts/           ← address book, one .vcf per contact          (§3.10)
+├── Contacts/           ← address book, one .vcf per contact          (§3.10)
 │   └── Sam Doe.vcf
-├── records/            ← scanned docs & credentials, by category     (§3.11)
+├── Records/            ← scanned docs & credentials, by category     (§3.11)
 │   ├── health/2021-12-31 - covid-19 vaccination card (CA, Moderna x3).png
 │   └── receipts/
 │       ├── recipients.txt
 │       └── 2026-05-28 - kaiser - receipt 3952863.pdf
-├── bookmarks/          ← bookmarks as .url shortcuts, by category     (§3.12)
+├── Bookmarks/          ← bookmarks as .url shortcuts, by category     (§3.12)
 │   └── Reading/Rust the Book.url
-├── secret/             ← encrypted-at-rest stage: credentials,        (§3.7)
+├── Secret/             ← encrypted-at-rest stage: credentials,        (§3.7)
 │   │                       tokens, SSN/passport/CC, sensitive files
 │   └── …                   (layout is the user's; secured by user)
 │
-├── projects/           ← your project workspaces                     (§4)
+├── Projects/           ← your project workspaces                     (§4)
 │   └── novel/          ←   a project (contains a project.yaml)
 │       ├── project.yaml
 │       ├── chapter-01.md
 │       └── outline.md
-├── scripts/            ← your helpers; scripts/converters/ for §10    (§11)
+├── Scripts/            ← your helpers; Scripts/converters/ for §10    (§11)
 │   └── converters/
 ├── taxes-2026/         ← just your files — moi leaves it alone
 └── recipes/
@@ -57,9 +57,9 @@ moi data lives under a directory referred to as `$MOI_HOME`. The default locatio
 
 The names moi reserves at the root are `bio.txt`, `avatar.txt`, `todo.txt`, `done.txt`, `project.yaml`,
 `intake.log.jsonl`, the image files `avatar.<ext>` and `face.<ext>` (§3.13), `identity.pub` (§3.14),
-`public.txt` (§3.15), and the `tasks/`, `notes/`, `journal/`, `drives/`, `email/`, `contacts/`,
-`records/`, `bookmarks/`, `playlists/`, `music/`, `hardware/`, `marketplace/`, `projects/`, `scripts/`,
-and `secret/` directories (the last is the encryption stage, §3.7). The reserved `avatar` and `face` images are matched by **stem** — any common image
+`public.txt` (§3.15), and the `Tasks/`, `Notes/`, `Journal/`, `Drives/`, `Email/`, `Contacts/`,
+`Records/`, `Bookmarks/`, `Playlists/`, `Music/`, `Hardware/`, `Marketplace/`, `Projects/`, `Scripts/`,
+and `Secret/` directories (the last is the encryption stage, §3.7). The reserved `avatar` and `face` images are matched by **stem** — any common image
 extension counts — so `avatar.txt` (the document) and `avatar.png` (the image) are distinct reserved
 entries that coexist. Everything else under `$MOI_HOME` belongs to the user.
 
@@ -67,11 +67,15 @@ These names are matched **case-insensitively**: a reader **MUST** treat `Records
 `RECORDS/` as the same reserved entry, and **MUST** preserve whatever casing the user chose rather than
 renaming it (capitalized forms like `Records/` or `Journal/` — as in the XDG user dirs `Music`,
 `Pictures` — are equally valid). A tree **MUST NOT** contain two reserved entries that differ only in
-case (§7).
+case (§7). moi's **canonical casing** is **TitleCase directories and lowercase root files** — matching the
+XDG/Android convention (capitalized user dirs like `Music` and `Pictures`; lowercase config). A tool
+creating a fresh entry **SHOULD** use this casing, so a tree mirrors cleanly between a desktop root and a
+mobile shared-storage root (`/storage/emulated/0/`) without a plain file-syncer spawning a case-only
+duplicate; a tool **MUST** still honor and preserve whatever casing it finds.
 
 ---
 
-## 2. Tasks — `todo.txt`, `done.txt`, `tasks/`
+## 2. Tasks — `todo.txt`, `done.txt`, `Tasks/`
 
 - `$MOI_HOME/todo.txt` holds active tasks; `$MOI_HOME/done.txt` holds completed tasks. They are the
   task lists of the root **home** project (§4.3).
@@ -84,31 +88,31 @@ case (§7).
   `slug` (§4.1).
 - Both files **MAY** be absent; a tool treats an absent file as empty.
 
-### 2.1 In-progress plans — `tasks/`
+### 2.1 In-progress plans — `Tasks/`
 
-`$MOI_HOME/tasks/` holds a working document for each task you have actively started — one free-form
-markdown file per task (e.g. `tasks/finish-the-novel.md`), holding its goal, plan, and progress. Where
-`todo.txt` is the one-line list, a `tasks/` file is the expanded plan; the folder's contents are, in
+`$MOI_HOME/Tasks/` holds a working document for each task you have actively started — one free-form
+markdown file per task (e.g. `Tasks/finish-the-novel.md`), holding its goal, plan, and progress. Where
+`todo.txt` is the one-line list, a `Tasks/` file is the expanded plan; the folder's contents are, in
 effect, your in-progress set. A plan file **SHOULD** be named after the `+<slug>` tag on its `todo.txt` line, linking the list entry
 to its plan.
 
 A task moves through this lifecycle:
 
 1. **Capture** — add a line to `todo.txt` (§2), tagged `+<slug>`.
-2. **Plan & validate** — create `tasks/<slug>.md` with the goal and steps, and confirm it holds
+2. **Plan & validate** — create `Tasks/<slug>.md` with the goal and steps, and confirm it holds
    everything needed to execute: URLs, credentials, contacts, file paths, etc. (Sensitive inputs such
    as credentials **SHOULD** live in a privacy stage, §3.7.)
 3. **Execute** — do the work, updating the plan as you go.
 4. **Complete** — mark the `todo.txt` line done and move it to `done.txt` (§2).
-5. **Archive** — move the plan to `tasks/done/<YYYY>/<MM>/<DD>/<slug>.md`, dated by completion.
+5. **Archive** — move the plan to `Tasks/done/<YYYY>/<MM>/<DD>/<slug>.md`, dated by completion.
 
-So the files directly under `tasks/` are exactly your active set; `tasks/done/` is the dated archive of
+So the files directly under `Tasks/` are exactly your active set; `Tasks/done/` is the dated archive of
 finished plans.
 
 **Linking to issue trackers.** A task **MAY** be associated with external GitHub issues or Jira tickets
 via `key:value` metadata on its `todo.txt` line (todo.txt's native syntax, §2) — recommended
 `gh:<owner>/<repo>#<n>` for GitHub and `jira:<KEY>-<n>` for Jira, repeated for several. The plan
-(`tasks/<slug>.md`) **MAY** also list the full URLs and cross-references. Keeping the reference on the
+(`Tasks/<slug>.md`) **MAY** also list the full URLs and cross-references. Keeping the reference on the
 task lets a tool sync status between moi and the tracker; such syncing is a tool's job (§9), not part of
 the core.
 
@@ -122,26 +126,26 @@ root, §4.3) and every file is **OPTIONAL** — an absent file or directory simp
 
 Two kinds of content live here:
 
-- **Plain text** — `bio.txt`, `notes/`, and `journal/` are prose; `avatar.txt` is an open key-value
+- **Plain text** — `bio.txt`, `Notes/`, and `Journal/` are prose; `avatar.txt` is an open key-value
   document. No schema, no required frontmatter, no index (§3.1–§3.4).
 - **Structured records** — the dose & substance log (§3.5) and the drives catalog (§3.8) are
   schema-validated, because they must be read identically by every tool.
-- **Standard-format files** — `email/` keeps messages as `.eml` (§3.9) and `contacts/` keeps your
+- **Standard-format files** — `Email/` keeps messages as `.eml` (§3.9) and `Contacts/` keeps your
   address book as `.vcf` vCards (§3.10).
-- **Documents** — `records/` keeps scanned documents & credentials in category subfolders (health,
+- **Documents** — `Records/` keeps scanned documents & credentials in category subfolders (health,
   bank, rent, receipts, …) (§3.11).
-- **Bookmarks** — `bookmarks/` holds one `.url` shortcut per saved page, organized in free-form
+- **Bookmarks** — `Bookmarks/` holds one `.url` shortcut per saved page, organized in free-form
   category subfolders (§3.12).
 - **Pictures** — `avatar.<ext>` is the image you pick to represent yourself; `face.<ext>` is a photo of
   your actual face (§3.13).
 - **Identity & presence** — `identity.pub` is your public identity key (its private half lives in
-  `secret/`, §3.7); `public.txt` is the small, signed set of facets you choose to make public (§3.14–§3.15).
+  `Secret/`, §3.7); `public.txt` is the small, signed set of facets you choose to make public (§3.14–§3.15).
 
 > **Sensitivity.** The whole tree is personal by default — it lives on a device the user controls. moi
 > says nothing about access control; protecting the tree (filesystem permissions, an encrypted home,
 > selective sync) is the user's responsibility and out of scope. For the subset that warrants
 > encryption at rest — credentials, sensitive identifiers, anything too personal to leave in cleartext —
-> moi reserves `secret/` (§3.7). A tool **MUST NOT** transmit any of this content anywhere without
+> moi reserves `Secret/` (§3.7). A tool **MUST NOT** transmit any of this content anywhere without
 > explicit user intent.
 
 ### 3.1 `bio.txt` — the entry point
@@ -156,17 +160,17 @@ read it before anything else. It describes:
 It is a single human-written plain-text file. A tool **SHOULD NOT** rewrite it wholesale; updates
 **SHOULD** be small, targeted edits (§7).
 
-### 3.2 `notes/` — knowledge base
+### 3.2 `Notes/` — knowledge base
 
-`$MOI_HOME/notes/` holds free-form markdown notes, one topic per file by convention
-(e.g. `notes/health.md`, `notes/finances.md`). Notes **MAY** reference each other with ordinary
+`$MOI_HOME/Notes/` holds free-form markdown notes, one topic per file by convention
+(e.g. `Notes/health.md`, `Notes/finances.md`). Notes **MAY** reference each other with ordinary
 relative markdown links. No structure is imposed; a note is just a markdown file. Tools **MAY** create,
 read, and edit notes, and **MUST** preserve content they did not author (§7).
 
-### 3.3 `journal/` — dated log
+### 3.3 `Journal/` — dated log
 
-`$MOI_HOME/journal/` holds dated entries, one file per day named `YYYY-MM-DD.md` (ISO 8601, e.g.
-`journal/2026-05-26.md`). Entries are an append-oriented record of what's going on over time. A tool
+`$MOI_HOME/Journal/` holds dated entries, one file per day named `YYYY-MM-DD.md` (ISO 8601, e.g.
+`Journal/2026-05-26.md`). Entries are an append-oriented record of what's going on over time. A tool
 appending to "today" **SHOULD** create the file if absent and add to it rather than overwrite earlier
 content.
 
@@ -201,35 +205,35 @@ lines and **MUST NOT** rewrite earlier ones (line-append is also the safest conc
 ### 3.6 Building context (for agents)
 
 To assemble personal context, an agent **SHOULD** start at `bio.txt`, then consult the avatar (§3.4)
-for hard facts and `notes/`, recent `journal/` entries, and the dose log (§3.5) as the task warrants,
-plus the `home` project's tasks (§2), and merging in anything it can read from `secret/` (§3.7). It
+for hard facts and `Notes/`, recent `Journal/` entries, and the dose log (§3.5) as the task warrants,
+plus the `home` project's tasks (§2), and merging in anything it can read from `Secret/` (§3.7). It
 **MUST** treat all of this as the user's own data: cite or summarize it, but never silently rewrite or
-delete it, and never copy content out of `secret/` into the base tree.
+delete it, and never copy content out of `Secret/` into the base tree.
 
-### 3.7 The `secret/` stage
+### 3.7 The `Secret/` stage
 
 The whole moi tree already lives on a device the user controls, so it is **personal by default** — there
 is no separate "private" stage and no "public" tag. The user decides what (if anything) to share from
 this tree on a case-by-case basis.
 
-The one reserved exception is `$MOI_HOME/secret/`, a stage for material that warrants encryption at rest
+The one reserved exception is `$MOI_HOME/Secret/`, a stage for material that warrants encryption at rest
 even on this machine — credentials, tokens, sensitive identifiers (SSN, passport, CC), and any files or
 directories the user judges too sensitive to leave in cleartext. Its layout is up to the user (e.g. one
 keyring file per credential); moi only fixes the location.
 
-moi says **nothing about how `secret/` is secured** — filesystem permissions, exclusion from sync, an
+moi says **nothing about how `Secret/` is secured** — filesystem permissions, exclusion from sync, an
 encrypted volume or external drive, or an `age`/`gpg` blob (e.g. `secret.tar.age`) kept in the
 synced tree and decrypted only when used. Whichever mechanism is chosen, the key or passphrase **MUST**
 live *outside* the moi tree — never synced beside the blob — and losing it means losing the stage.
 
-A tool **MUST NOT** assume `secret/` is readable (no permission, undecryptable, absent on this machine
-all mean the same thing: less context), and **MUST NOT** copy content from `secret/` into the base tree.
+A tool **MUST NOT** assume `Secret/` is readable (no permission, undecryptable, absent on this machine
+all mean the same thing: less context), and **MUST NOT** copy content from `Secret/` into the base tree.
 
-### 3.8 Drives catalog — `drives/`
+### 3.8 Drives catalog — `Drives/`
 
-`$MOI_HOME/drives/` is a structured inventory of your storage media — one YAML file per filesystem,
+`$MOI_HOME/Drives/` is a structured inventory of your storage media — one YAML file per filesystem,
 named by a **friendly name** (the drive's `label` if it has one, otherwise one you choose, e.g.
-`drives/vault.yaml`). It records what drives you have and where: the kind of thing a file-indexer
+`Drives/vault.yaml`). It records what drives you have and where: the kind of thing a file-indexer
 produces and a backup tool or agent consults.
 
 Each file carries at least `uuid`; commonly also `label`, `fs`, `size`, `model`, `serial`, `last_mount`,
@@ -246,13 +250,13 @@ listed) or carries per-folder metadata: `privacy` (`public`/`personal`/`confiden
 (what the folder backs up — a drive label, path, device, or project; its presence marks the folder a
 backup), and `notes`.
 
-### 3.9 Email archive — `email/`
+### 3.9 Email archive — `Email/`
 
-`$MOI_HOME/email/` archives saved messages as standard `.eml` files (RFC 822 / MIME — the portable
+`$MOI_HOME/Email/` archives saved messages as standard `.eml` files (RFC 822 / MIME — the portable
 on-disk email format any client can read), laid out by account then date:
 
 ```
-email/<account-address>/<YYYY>/<MM>/<DD>/HH-MM-SS - <sender> - <subject>.eml
+Email/<account-address>/<YYYY>/<MM>/<DD>/HH-MM-SS - <sender> - <subject>.eml
 ```
 
 - `<account-address>` is the mailbox the message belongs to — one subtree per account you archive
@@ -260,50 +264,59 @@ email/<account-address>/<YYYY>/<MM>/<DD>/HH-MM-SS - <sender> - <subject>.eml
 - `YYYY/MM/DD` and the `HH-MM-SS` filename prefix come from the message's own date.
 - The filename is `time - sender - subject`, with all parts filesystem-safe (§7): the time written as
   `HH-MM-SS`, and disallowed characters in the sender/subject replaced.
-- Mail is sensitive: the `email/` tree **SHOULD** usually live in a privacy stage (§3.7), not the
+- Mail is sensitive: the `Email/` tree **SHOULD** usually live in a privacy stage (§3.7), not the
   public base.
 
-### 3.10 Contacts — `contacts/`
+### 3.10 Contacts — `Contacts/`
 
-`$MOI_HOME/contacts/` is your address book — one [vCard](https://datatracker.ietf.org/doc/html/rfc6350)
+`$MOI_HOME/Contacts/` is your address book — one [vCard](https://datatracker.ietf.org/doc/html/rfc6350)
 file per contact (`.vcf`, vCard 4.0 recommended), the portable standard any phone or mail client reads.
-Name each file by the contact's display name, filesystem-safe (§7) — e.g. `contacts/Sam Doe.vcf`; the
+Name each file by the contact's display name, filesystem-safe (§7) — e.g. `Contacts/Sam Doe.vcf`; the
 vCard's `UID` is the stable identity inside, so the filename can change without losing it. Contacts hold
 other people's personal data and **SHOULD** usually live in a privacy stage (§3.7). (The avatar's
 `emergency contacts:` is a quick shortlist; the full records live here.)
 
-### 3.11 Records — `records/`
+A contact **MAY** have a sibling image — a `.jpg`, `.png`, or `.webp` whose basename matches the
+vCard's, e.g. `Contacts/Sam Doe.jpg` beside `Contacts/Sam Doe.vcf`. It is the contact's photo, kept
+as a plain sibling file rather than embedded in the vCard so it stays easy to view and replace; if both
+a sibling image and an embedded `PHOTO` exist, the sibling wins.
 
-`$MOI_HOME/records/` holds scanned official documents and credentials — IDs, passports, insurance and
+"Contacts" is broader than people you correspond with: a contact is anyone you want a record of —
+people you follow, people you honor, and people on your shitlist alike. The vCard's `NOTE` and
+`CATEGORIES` (or an `X-` field) carry which of these a given entry is.
+
+### 3.11 Records — `Records/`
+
+`$MOI_HOME/Records/` holds scanned official documents and credentials — IDs, passports, insurance and
 membership cards, certificates, licenses, vaccination and other health records, receipts, and the like
 (images or PDFs) — organized into **category subfolders**. The category set is open; add what you need:
 
 ```
-records/health/    records/bank/    records/rent/    records/receipts/    …
+Records/health/    Records/bank/    Records/rent/    Records/receipts/    …
 ```
 
 Within a category, name each file `<YYYY-MM-DD> - <description>.<ext>` (filesystem-safe, §7), the date
 being when the record was issued or last effective — e.g.
-`records/health/2021-12-31 - covid-19 vaccination card (CA, Moderna x3).png`. In a multi-person home you
+`Records/health/2021-12-31 - covid-19 vaccination card (CA, Moderna x3).png`. In a multi-person home you
 **MAY** prefix the person.
 
-**Receipts** (`records/receipts/`) are a category with one extra rule: the filename also carries a known
-**recipient identifier** — the payee — drawn from `records/receipts/recipients.txt` (one `id: Full Name`
+**Receipts** (`Records/receipts/`) are a category with one extra rule: the filename also carries a known
+**recipient identifier** — the payee — drawn from `Records/receipts/recipients.txt` (one `id: Full Name`
 per line, e.g. `kaiser: Kaiser Permanente`), so a payee is always named the same way:
 `<YYYY-MM-DD> - <recipient> - <description>.<ext>`, e.g. `2026-05-28 - kaiser - receipt 3952863.pdf`.
 
 Records are sensitive; anything that would hurt to leak (IDs, scans of legal documents, account
-statements) **SHOULD** live under `secret/` (§3.7).
+statements) **SHOULD** live under `Secret/` (§3.7).
 
-### 3.12 Bookmarks — `bookmarks/`
+### 3.12 Bookmarks — `Bookmarks/`
 
-`$MOI_HOME/bookmarks/` is a folder-organized bookmark library: one file per bookmark, free-form
+`$MOI_HOME/Bookmarks/` is a folder-organized bookmark library: one file per bookmark, free-form
 **category subfolders** chosen by the user, nested as deep as wanted.
 
 ```
-bookmarks/Reading/Rust the Book.url
-bookmarks/Reading/Papers/Bitter Lesson.url
-bookmarks/Tools/Git Cheatsheet.url
+Bookmarks/Reading/Rust the Book.url
+Bookmarks/Reading/Papers/Bitter Lesson.url
+Bookmarks/Tools/Git Cheatsheet.url
 ```
 
 Each bookmark is a Windows **Internet Shortcut** `.url` file — a plain-text INI document, recognized as
@@ -341,19 +354,19 @@ with filesystem-safe names (they already are) and the usual atomic write (§7).
 
 Both are **OPTIONAL** and, being ordinary image files, are portable to anything that shows pictures. A
 face photograph is personal; treat it with the same care as the rest of the tree, and a user who
-considers it sensitive **MAY** keep it under `secret/` (§3.7) instead.
+considers it sensitive **MAY** keep it under `Secret/` (§3.7) instead.
 
-### 3.14 Identity — `identity.pub` (and the private key in `secret/`)
+### 3.14 Identity — `identity.pub` (and the private key in `Secret/`)
 
 A moi tree **MAY** have a cryptographic **identity**: a single
 [Ed25519](https://ed25519.cr.yp.to/) keypair that is the anchor for signing what you publish (§3.15) and,
 in future, for proving a new device is yours. The identity is **OPTIONAL** — a tree without one simply
 can't sign or be verified.
 
-- **Private key** — lives in `secret/` (§3.7), never in the base tree; **RECOMMENDED** path
-  `secret/identity.ed25519`. moi fixes neither its on-disk encoding nor how it is protected — on a phone
+- **Private key** — lives in `Secret/` (§3.7), never in the base tree; **RECOMMENDED** path
+  `Secret/identity.ed25519`. moi fixes neither its on-disk encoding nor how it is protected — on a phone
   it **SHOULD** be a hardware-backed key (Android Keystore/StrongBox, iOS Secure Enclave) released by
-  biometric; on a desktop, a file in the encrypted `secret/` stage. A tool **MUST NOT** copy it into the
+  biometric; on a desktop, a file in the encrypted `Secret/` stage. A tool **MUST NOT** copy it into the
   base tree or transmit it (§3.7).
 - **Public key** — published at `$MOI_HOME/identity.pub`, a single text line in the OpenSSH
   `authorized_keys` style so it is human-pasteable and tool-friendly:
@@ -375,7 +388,7 @@ out of scope here (they belong to device enrollment, §12).
 `$MOI_HOME/public.txt` is the small, **signed**, explicitly-curated set of facets you choose to make
 public — your nickname, pronouns, the bands whose shirts you'd wear all at once. It is the *only* file
 moi ever advertises (§12), and it exists precisely so that going public is a deliberate act: a tool
-**MUST NOT** derive it from `avatar.txt`, `notes/`, or anything else automatically, and **MUST NOT**
+**MUST NOT** derive it from `avatar.txt`, `Notes/`, or anything else automatically, and **MUST NOT**
 broadcast anything but this file. It is **OPTIONAL** and, by the rule of §3.6, **off until the user
 writes it**.
 
@@ -417,14 +430,14 @@ sig: <base64 of the 64-byte Ed25519 signature>
 > stable signed beacon is a tracking vector, presence is opt-in, **off by default**, and a tool
 > advertising it **SHOULD** let the user rotate or pause it (§12).
 
-### 3.16 Playlists — `playlists/`
+### 3.16 Playlists — `Playlists/`
 
-`$MOI_HOME/playlists/` holds music playlists, one **extended `.m3u8`** file each — UTF-8 m3u, the
+`$MOI_HOME/Playlists/` holds music playlists, one **extended `.m3u8`** file each — UTF-8 m3u, the
 format every player on every platform reads, the `8` declaring the encoding. Name each by its human
-title, filesystem-safe (§7): `playlists/Late night driving.m3u8`.
+title, filesystem-safe (§7): `Playlists/Late night driving.m3u8`.
 
 A playlist **MUST NOT** contain absolute paths or `file://`/`http(s)` locators to local media. Every
-track is a path **relative to a music library root**, anchored at the moi root as `music/` — a directory
+track is a path **relative to a music library root**, anchored at the moi root as `Music/` — a directory
 or a symlink to wherever the collection actually lives (often a large external disk, catalogued in §3.8),
 so the playlist never encodes the absolute location. An **album** is then simply a relative directory
 under that root, `AlbumArtist/Album/`, the canonical tags-derived layout that ripper and library tools
@@ -454,16 +467,16 @@ throughout moi. A writer **MUST** preserve `#EXTINF` and any unknown `#` directi
 `<location>` plus a MusicBrainz `<identifier>` — and a tool **MAY** also write `.xspf`; but `.m3u8` is
 moi's portable default.
 
-### 3.17 Hardware — `hardware/`
+### 3.17 Hardware — `Hardware/`
 
-`$MOI_HOME/hardware/` is an inventory of your physical things, two levels deep: a **group** subfolder
+`$MOI_HOME/Hardware/` is an inventory of your physical things, two levels deep: a **group** subfolder
 (open set — `computers/`, `kitchen/`, `music studio/`, `photography/`, …), and inside it **one subfolder
 per item**, named for the thing:
 
 ```
-hardware/computers/Framework 16/
-hardware/computers/Razer Huntsman V2 Tenkeyless/
-hardware/photography/Sony A7 IV/
+Hardware/computers/Framework 16/
+Hardware/computers/Razer Huntsman V2 Tenkeyless/
+Hardware/photography/Sony A7 IV/
 ```
 
 Each item folder carries a **spec sheet**, `spec.txt` — open `key: value` plain text, the same shape as
@@ -486,34 +499,34 @@ populates each one's `spec.txt` with the model's properties, street `price:`, a 
 maker or store, and a short recommendation (`verdict:` / `pros:` / `cons:`). When you buy one, **move its
 folder** into the fitting owned group — bedroom speakers graduate to `audio gear/` — and flip `status:`
 to `owned`, filling in `SN:`, `purchased:`, and the rest. The research group can then be deleted, or kept
-as a record of the alternatives you weighed. This is the buy-side mirror of the sell-side `marketplace/`
+as a record of the alternatives you weighed. This is the buy-side mirror of the sell-side `Marketplace/`
 (§3.18).
 
-### 3.18 Marketplace — `marketplace/`
+### 3.18 Marketplace — `Marketplace/`
 
-`$MOI_HOME/marketplace/` lists the things you want to **sell or give away**. Listing an item is putting
-it here — most naturally as a **symlink** to its folder under `hardware/` (§3.17), so the spec sheet,
+`$MOI_HOME/Marketplace/` lists the things you want to **sell or give away**. Listing an item is putting
+it here — most naturally as a **symlink** to its folder under `Hardware/` (§3.17), so the spec sheet,
 manual, and pictures are shared rather than copied:
 
 ```
-marketplace/Steam Controller  ->  ../hardware/computers/Steam Controller
+Marketplace/Steam Controller  ->  ../Hardware/computers/Steam Controller
 ```
 
 A listed item's `spec.txt` carries a **price** tag: `price: 35 EUR` (use `price: free` or `price: 0` for
 a giveaway), plus optional `for sale: yes`, `condition:`, and `listed:` (date). Removing the symlink
-delists it; the hardware entry stays put. An item you never catalogued under `hardware/` **MAY** instead
+delists it; the hardware entry stays put. An item you never catalogued under `Hardware/` **MAY** instead
 be a plain folder here with its own `spec.txt`.
 
 ---
 
 ## 4. Projects
 
-> **Projects live under `$MOI_HOME/projects/`; each is a directory there that contains a `project.yaml`.**
+> **Projects live under `$MOI_HOME/Projects/`; each is a directory there that contains a `project.yaml`.**
 
-Scoping projects to a single `projects/` folder keeps moi from having to guess about arbitrary
-directories — anything outside `projects/` is simply the user's own files.
+Scoping projects to a single `Projects/` folder keeps moi from having to guess about arbitrary
+directories — anything outside `Projects/` is simply the user's own files.
 
-- A tool **SHOULD** discover projects by scanning the immediate children of `$MOI_HOME/projects/` for a
+- A tool **SHOULD** discover projects by scanning the immediate children of `$MOI_HOME/Projects/` for a
   `project.yaml`. It **MAY** also track projects whose directories live elsewhere (e.g. a code repo
   under `~/Projects`); how such external paths are remembered is tool-specific and out of scope here.
 - The project's identity comes from its `project.yaml` (§4.1), not from its directory name. A project
@@ -607,8 +620,8 @@ ordering (e.g. by using a round-tripping YAML library such as `ruamel.yaml`; see
 ### 4.3 The home project (the root)
 
 The root directory `$MOI_HOME` is itself the **home** project: the pinned personal workspace for data
-not tied to any single project. Its content is the personal context of §3 (`bio.txt`, `notes/`,
-`journal/`) and its tasks (§2). The home is the root itself — not a directory under `projects/` — and
+not tied to any single project. Its content is the personal context of §3 (`bio.txt`, `Notes/`,
+`Journal/`) and its tasks (§2). The home is the root itself — not a directory under `Projects/` — and
 exists as a project when the root contains `$MOI_HOME/project.yaml`. That manifest uses the reserved
 values `id: home`, `slug: home`,
 `type: home`. There **MUST NOT** be more than one project with `type: home`. Tools **SHOULD NOT** allow
@@ -666,7 +679,7 @@ normative; the techniques below are the **RECOMMENDED** ways to satisfy them.
   `project.yaml`. To edit safely, either (a) use a round-tripping
   parser (e.g. `ruamel.yaml`), or (b) — especially for an agent with only generic file tools — make a
   **minimal targeted text edit** to the specific line(s) you are changing and leave the rest of the
-  bytes untouched. The same care applies to the user's prose in `bio.txt`, `avatar.txt`, and `notes/`.
+  bytes untouched. The same care applies to the user's prose in `bio.txt`, `avatar.txt`, and `Notes/`.
   (`intake.log.jsonl` is append-only and so sidesteps this entirely — add a line, never rewrite the file.)
 - **Write atomically.** Several tools may share the tree concurrently. A writer **SHOULD** write to a
   temporary file in the *same directory* and `rename()` it over the target, so a reader never observes
@@ -693,14 +706,14 @@ A conforming moi tool:
 
 1. Resolves `$MOI_HOME` (default `~/Documents`); treats it as a directory of the user's own files.
 2. Claims only the reserved root names (`bio.txt`, `avatar.txt`, `avatar.<ext>` and `face.<ext>` images,
-   `identity.pub`, `public.txt`, `todo.txt`, `done.txt`, `project.yaml`, `intake.log.jsonl`, `tasks/`, `notes/`, `journal/`, `drives/`, `email/`, `contacts/`, `records/`, `bookmarks/`, `playlists/`, `music/`, `hardware/`, `marketplace/`, `projects/`, `scripts/`, `secret/`); matches them case-insensitively (§1); leaves all other root entries untouched.
+   `identity.pub`, `public.txt`, `todo.txt`, `done.txt`, `project.yaml`, `intake.log.jsonl`, `Tasks/`, `Notes/`, `Journal/`, `Drives/`, `Email/`, `Contacts/`, `Records/`, `Bookmarks/`, `Playlists/`, `Music/`, `Hardware/`, `Marketplace/`, `Projects/`, `Scripts/`, `Secret/`); matches them case-insensitively (§1), preferring TitleCase dirs / lowercase files when creating fresh entries; leaves all other root entries untouched.
 3. Reads/writes `todo.txt` / `done.txt` in todo.txt format, when it touches tasks (§2).
-4. Treats `bio.txt`, `avatar.txt`, `notes/`, and `journal/` as free-form plain text (no schema), and
+4. Treats `bio.txt`, `avatar.txt`, `Notes/`, and `Journal/` as free-form plain text (no schema), and
    `intake.log.jsonl` as a schema-validated structured log; never silently rewrites or deletes the
    user's data (§3).
-5. Treats an inaccessible `secret/` stage as absent, and never copies content out of it into the
+5. Treats an inaccessible `Secret/` stage as absent, and never copies content out of it into the
    base tree (§3.7).
-6. Discovers projects by scanning `$MOI_HOME/projects/` for directories containing a `project.yaml`
+6. Discovers projects by scanning `$MOI_HOME/Projects/` for directories containing a `project.yaml`
    (plus the root's home manifest, and any external project paths it chooses to track) (§4).
 7. Honors all core fields (§4.1), never repurposes their names, and treats `slug` as independent of the
    directory name.
@@ -710,7 +723,7 @@ A conforming moi tool:
 11. Leaves unrecognized files and directories untouched.
 12. If it publishes presence, advertises only `public.txt`, never auto-derives it, verifies its
     signature against `identity.pub` before trusting it, and keeps the identity private key inside
-    `secret/` (§3.14–§3.15, §12).
+    `Secret/` (§3.14–§3.15, §12).
 
 ---
 
@@ -724,9 +737,9 @@ documents how moi maps onto existing software — possible precisely because a m
 [Obsidian](https://obsidian.md) is a markdown-vault editor, and a moi home is a compatible vault: open
 `$MOI_HOME` as a vault and moi's markdown layer becomes first-class.
 
-- `notes/` and `journal/` gain wikilinks, backlinks, graph view, and search. `notes/` is, in
+- `Notes/` and `Journal/` gain wikilinks, backlinks, graph view, and search. `Notes/` is, in
   effect, what Obsidian is built for.
-- `journal/` maps onto Obsidian's **Daily Notes** core plugin — point it at the `journal/` folder with
+- `Journal/` maps onto Obsidian's **Daily Notes** core plugin — point it at the `Journal/` folder with
   date format `YYYY-MM-DD`. (A moi journal entry MAY carry a `-title` suffix; Daily Notes won't treat
   that as the canonical daily note, but the file is still an ordinary note.)
 - The non-markdown files — `bio.txt`, `avatar.txt`, `todo.txt`/`done.txt`, `intake.log.jsonl`, `project.yaml`, and
@@ -742,7 +755,7 @@ A moi-aware Obsidian plugin **MAY** store its state under an `x-obsidian:` names
 ### fili
 
 [fili](https://github.com/strycore/fili) is a file-indexer that classifies everything on your drives.
-It populates moi's `drives/` catalog (§3.8) — exporting one file per filesystem UUID — and reads it
+It populates moi's `Drives/` catalog (§3.8) — exporting one file per filesystem UUID — and reads it
 back; its richer per-file index stays in its own store, with any moi-side extras under an `x-fili:`
 namespace. fili's `public` / `personal` / `confidential` privacy levels mirror moi's stages (§3.7).
 
@@ -764,12 +777,12 @@ For each supported source, two things happen:
    archived copy self-dating, its vintage obvious at a glance, and lets identical states de-duplicate.
    The original is the ground truth; conversion is lossy by nature.
 2. **Convert into moi's plain-text conventions.** A per-source **extractor/converter** maps the export
-   into the matching moi shape — e.g. Joplin or Tomboy notes → `notes/` (§3.2), Thunderbird mail →
-   `email/` (§3.9), a Facebook archive → dated `journal/` entries or logs (§3.3). The converted form is
+   into the matching moi shape — e.g. Joplin or Tomboy notes → `Notes/` (§3.2), Thunderbird mail →
+   `Email/` (§3.9), a Facebook archive → dated `Journal/` entries or logs (§3.3). The converted form is
    what you read and search day to day; the preserved original lets you re-convert later as the
    converters improve.
 
-Converters are per-source tools that live under `scripts/converters/` (§11), not part of the moi core
+Converters are per-source tools that live under `Scripts/converters/` (§11), not part of the moi core
 (like the consumers in §9); moi only fixes the destination conventions and the preserve-the-original
 discipline. A converted artifact **SHOULD**
 record its provenance (a `source:` line, or an `x-<tool>:` field) so it can be traced back to the
@@ -777,12 +790,12 @@ preserved original.
 
 ---
 
-## 11. Scripts — `scripts/`
+## 11. Scripts — `Scripts/`
 
-`$MOI_HOME/scripts/` holds executable helpers you keep alongside your data — backup jobs, importers,
+`$MOI_HOME/Scripts/` holds executable helpers you keep alongside your data — backup jobs, importers,
 maintenance tasks, anything that operates on the moi tree. Its reserved subfolder
-`scripts/converters/` is where the per-source extractors/converters of §10 live (e.g.
-`scripts/converters/joplin-to-notes`, `scripts/converters/thunderbird-to-email`).
+`Scripts/converters/` is where the per-source extractors/converters of §10 live (e.g.
+`Scripts/converters/joplin-to-notes`, `Scripts/converters/thunderbird-to-email`).
 
 moi places no constraint on a script's language or form — shell, Python, a compiled binary. A script
 that writes into the tree is a moi tool and **MUST** follow the write rules (§7) and the relevant
