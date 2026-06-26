@@ -37,8 +37,27 @@
     },
     "repos": {
       "type": "array",
-      "items": { "type": "string" },
-      "description": "Absolute paths or identifiers of repositories/directories this project spans. A UX hint."
+      "description": "Repositories/directories this project spans. Each entry is either a bare string (local path or identifier, a UX hint) or a repo mapping with a clone url, a path, an optional branch, and optional per-repo actions.",
+      "items": {
+        "oneOf": [
+          { "type": "string" },
+          {
+            "type": "object",
+            "properties": {
+              "url": { "type": "string", "description": "Clone URL (any git-cloneable remote). Absent means local-only." },
+              "path": { "type": "string", "description": "Location relative to the project directory. Defaults to the repo name derived from url." },
+              "branch": { "type": "string", "description": "Branch/ref to check out on clone." },
+              "name": { "type": "string", "description": "Human label; defaults to path or the URL stem." },
+              "actions": {
+                "type": "object",
+                "description": "Named shell commands run in the repo's path. Conventional names: setup, build, test, run, lint, deploy, backup.",
+                "additionalProperties": { "type": "string" }
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
+      }
     }
   },
   "patternProperties": {

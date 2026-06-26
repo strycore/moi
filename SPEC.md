@@ -532,10 +532,71 @@ directories — anything outside `projects/` is simply the user's own files.
 | `type`        | enum                | no   | One of `software`, `research`, `personal`, `other`, `home`. Defaults to `other`. |
 | `created_at`  | string (ISO 8601)   | no   | Creation timestamp. |
 | `updated_at`  | string (ISO 8601)   | no   | Last-modified timestamp; writers **SHOULD** update it on every change. |
-| `repos`       | list of strings     | no   | Absolute paths / identifiers of code repositories or directories this project spans. A UX hint. |
+| `repos`       | list (string or map) | no  | Repositories/directories this project spans. Each entry is either a bare string (a local path or identifier, as a UX hint) or a **repo mapping** (§4.1.1) carrying a clone `url`, a `path`, and optional per-repo `actions`. |
 
 A tool **MUST** preserve core fields it does not use, and **MUST NOT** repurpose a core field name
 for tool-specific data — use an extension namespace (§5) instead.
+
+#### 4.1.1 `repos` — multi-repo projects
+
+A project often spans several independent repositories on different stacks (e.g. a Django backend and
+a Bun/Vue frontend). Listing them in `project.yaml` lets a tool clone them all in one go and drive
+them together. Each entry in `repos` is one of:
+
+- a **bare string** — a local path or identifier the project spans (a UX hint); or
+- a **repo mapping** with these fields:
+
+| Field     | Type                | Req. | Notes |
+|-----------|---------------------|------|-------|
+| `url`     | string              | no   | Clone URL (any git-cloneable remote, SSH or HTTPS). Absent means the repo is local-only. |
+| `path`    | string              | no   | Where the repo lives, **relative to the project directory**. Defaults to the repo name derived from `url`. |
+| `branch`  | string              | no   | Branch/ref to check out on clone. |
+| `name`    | string              | no   | Human label; defaults to `path` or the URL stem. |
+| `actions` | map<string,string>  | no   | Named shell commands for this repo (§4.1.2). |
+
+A tool that supports cloning **SHOULD** treat a present `url` as "clone into `path` if missing." It
+**MUST NOT** otherwise modify a repo's working tree except as the explicit action the user invoked.
+
+#### 4.1.2 `actions` — named commands
+
+`actions` maps an action name to a shell command string. moi reserves no action names and assigns them
+no meaning — they are the user's own labels — but the following are **RECOMMENDED conventional** names
+so tools can offer them uniformly:
+
+> `setup`, `build`, `test`, `run`, `lint`, `deploy`, `backup`
+
+- A command runs with its working directory set to the repo's `path`.
+- moi defines **what is declared**, not **how it is executed**: shell, environment, parallelism,
+  ordering, and inter-action dependencies are the runner's concern and out of scope here. A typical
+  runner launches every repo's `run` action in parallel and fans `test`/`build` across repos.
+- Because actions are arbitrary shell, a tool **MUST** treat them as untrusted — carrying the same risk
+  as any script in the tree (§11) — and **SHOULD** require explicit user confirmation before executing
+  one.
+
+```yaml
+repos:
+  - url: git@github.com:you/lunchcraft-backend.git
+    path: backend
+    branch: main
+    actions:
+      setup: uv sync
+      run:   uv run manage.py runserver
+      test:  uv run pytest
+      deploy: ./deploy.sh
+  - url: git@github.com:you/lunchcraft-frontend.git
+    path: frontend
+    actions:
+      setup: bun install
+      run:   bun run dev
+      test:  bun test
+```
+
+> **Lineage (non-normative).** The repo list is moi's own, shaped after multi-repo manifests like
+> [`tsrc`](https://github.com/your-tools/tsrc) and [vcstool](https://github.com/dirk-thomas/vcstool)
+> (a YAML list of repos with clone URLs). Those tools only run a *single uniform* command across every
+> repo (`tsrc foreach`, `vcs custom`); the per-repo **`actions`** map — build/test/run/deploy declared
+> alongside each repo — is moi's addition, closer in spirit to Docker Compose's `command:` or a
+> `Procfile`/Taskfile, but stack- and tool-agnostic.
 
 ### 4.2 Round-trip preservation
 
