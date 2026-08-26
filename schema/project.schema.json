@@ -29,29 +29,40 @@
     },
     "created_at": {
       "type": "string",
-      "description": "Creation timestamp (ISO 8601)."
+      "description": "Creation timestamp (ISO 8601). Unquoted YAML date scalars are equivalent; a YAML-aware validator stringifies them before applying this schema."
     },
     "updated_at": {
       "type": "string",
-      "description": "Last-modified timestamp (ISO 8601)."
+      "description": "Last-modified timestamp (ISO 8601). Unquoted YAML date scalars are equivalent; a YAML-aware validator stringifies them before applying this schema."
     },
     "repos": {
       "type": "array",
-      "description": "Repositories/directories this project spans. Each entry is either a bare string (local path or identifier, a UX hint) or a repo mapping with a clone url, a path, an optional branch, and optional per-repo actions.",
+      "description": "Repositories/directories this project spans. Each entry is either a bare string (shorthand for a mapping with only path) or a repo mapping with a path, a web url, a clone remote, an optional branch, and optional per-repo actions and executables.",
       "items": {
         "oneOf": [
           { "type": "string" },
           {
             "type": "object",
             "properties": {
-              "url": { "type": "string", "description": "Clone URL (any git-cloneable remote). Absent means local-only." },
-              "path": { "type": "string", "description": "Location relative to the project directory. Defaults to the repo name derived from url." },
+              "name": { "type": "string", "description": "Human label; defaults to the last component of path or the remote's stem." },
+              "path": { "type": "string", "description": "Where the repo's working tree lives. Absolute (or ~-prefixed) paths are the common case — code normally lives outside the moi tree; a relative path resolves against the project directory. Defaults to the repo name derived from remote." },
+              "url": { "type": "string", "description": "Web URL of the repo — its browsable home page." },
+              "remote": { "type": "string", "description": "Git remote to clone from (SSH or HTTPS). Absent means local-only; a tool may fall back to url when it is cloneable." },
               "branch": { "type": "string", "description": "Branch/ref to check out on clone." },
-              "name": { "type": "string", "description": "Human label; defaults to path or the URL stem." },
               "actions": {
                 "type": "object",
-                "description": "Named shell commands run in the repo's path. Conventional names: setup, build, test, run, lint, deploy, backup.",
+                "description": "Named one-shot shell commands run in the repo's path. Conventional names: setup, build, test, lint, deploy, backup.",
                 "additionalProperties": { "type": "string" }
+              },
+              "executables": {
+                "type": "array",
+                "description": "Programs this repo can launch (long-running processes). Each entry is a single-key map from executable name to shell command, run in the repo's path.",
+                "items": {
+                  "type": "object",
+                  "minProperties": 1,
+                  "maxProperties": 1,
+                  "additionalProperties": { "type": "string" }
+                }
               }
             },
             "additionalProperties": false

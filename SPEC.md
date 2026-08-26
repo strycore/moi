@@ -526,6 +526,12 @@ be a plain folder here with its own `spec.txt`.
 Scoping projects to a single `Projects/` folder keeps moi from having to guess about arbitrary
 directories — anything outside `Projects/` is simply the user's own files.
 
+A project is the umbrella for everything related to one effort — most visibly the one or more git
+repositories it spans (`repos`, §4.1.1). The repositories themselves normally live **outside the moi
+tree** (e.g. under `~/Projects`): a synced personal tree is no place for working trees and `.git`
+directories. The project directory under `$MOI_HOME/Projects/` holds the manifest and any personal
+files about the project — notes, documents, assets — not the code.
+
 - A tool **SHOULD** discover projects by scanning the immediate children of `$MOI_HOME/Projects/` for a
   `project.yaml`. It **MAY** also track projects whose directories live elsewhere (e.g. a code repo
   under `~/Projects`); how such external paths are remembered is tool-specific and out of scope here.
@@ -545,7 +551,7 @@ directories — anything outside `Projects/` is simply the user's own files.
 | `type`        | enum                | no   | One of `software`, `research`, `personal`, `other`, `home`. Defaults to `other`. |
 | `created_at`  | string (ISO 8601)   | no   | Creation timestamp. |
 | `updated_at`  | string (ISO 8601)   | no   | Last-modified timestamp; writers **SHOULD** update it on every change. |
-| `repos`       | list (string or map) | no  | Repositories/directories this project spans. Each entry is either a bare string (a local path or identifier, as a UX hint) or a **repo mapping** (§4.1.1) carrying a clone `url`, a `path`, and optional per-repo `actions`. |
+| `repos`       | list (string or map) | no  | Repositories/directories this project spans. Each entry is either a bare string (shorthand for a mapping with only `path`) or a **repo mapping** (§4.1.1) carrying a `path`, a web `url`, a clone `remote`, and optional per-repo `actions` and `executables`. |
 
 A tool **MUST** preserve core fields it does not use, and **MUST NOT** repurpose a core field name
 for tool-specific data — use an extension namespace (§5) instead.
@@ -556,60 +562,87 @@ A project often spans several independent repositories on different stacks (e.g.
 a Bun/Vue frontend). Listing them in `project.yaml` lets a tool clone them all in one go and drive
 them together. Each entry in `repos` is one of:
 
-- a **bare string** — a local path or identifier the project spans (a UX hint); or
+- a **bare string** — shorthand for a mapping containing only `path`; or
 - a **repo mapping** with these fields:
 
-| Field     | Type                | Req. | Notes |
-|-----------|---------------------|------|-------|
-| `url`     | string              | no   | Clone URL (any git-cloneable remote, SSH or HTTPS). Absent means the repo is local-only. |
-| `path`    | string              | no   | Where the repo lives, **relative to the project directory**. Defaults to the repo name derived from `url`. |
-| `branch`  | string              | no   | Branch/ref to check out on clone. |
-| `name`    | string              | no   | Human label; defaults to `path` or the URL stem. |
-| `actions` | map<string,string>  | no   | Named shell commands for this repo (§4.1.2). |
+| Field         | Type               | Req. | Notes |
+|---------------|--------------------|------|-------|
+| `name`        | string             | no   | Human label; defaults to the last component of `path` or the remote's stem. |
+| `path`        | string             | no   | Where the repo's working tree lives. Absolute paths are allowed and are the common case — code normally lives outside the moi tree (§4). A leading `~` expands to the user's home; a relative path resolves against the project directory. Defaults to the repo name derived from `remote`. |
+| `url`         | string             | no   | Web URL of the repo — its browsable home page (e.g. `https://github.com/lutris/lutris`). |
+| `remote`      | string             | no   | Git remote to clone from (SSH or HTTPS). Absent means the repo is local-only, though a tool **MAY** fall back to `url` when that is itself cloneable. |
+| `branch`      | string             | no   | Branch/ref to check out on clone. |
+| `actions`     | map<string,string> | no   | Named one-shot shell commands for this repo (§4.1.2). |
+| `executables` | list of single-key maps | no | Programs this repo can launch (§4.1.3). |
 
-A tool that supports cloning **SHOULD** treat a present `url` as "clone into `path` if missing." It
+A tool that supports cloning **SHOULD** treat a present `remote` as "clone into `path` if missing." It
 **MUST NOT** otherwise modify a repo's working tree except as the explicit action the user invoked.
 
 #### 4.1.2 `actions` — named commands
 
-`actions` maps an action name to a shell command string. moi reserves no action names and assigns them
-no meaning — they are the user's own labels — but the following are **RECOMMENDED conventional** names
-so tools can offer them uniformly:
+`actions` maps an action name to a shell command string — **one-shot tasks** that run to completion.
+Long-running programs belong in `executables` (§4.1.3) instead. moi reserves no action names and
+assigns them no meaning — they are the user's own labels — but the following are **RECOMMENDED
+conventional** names so tools can offer them uniformly:
 
-> `setup`, `build`, `test`, `run`, `lint`, `deploy`, `backup`
+> `setup`, `build`, `test`, `lint`, `deploy`, `backup`
 
 - A command runs with its working directory set to the repo's `path`.
 - moi defines **what is declared**, not **how it is executed**: shell, environment, parallelism,
   ordering, and inter-action dependencies are the runner's concern and out of scope here. A typical
-  runner launches every repo's `run` action in parallel and fans `test`/`build` across repos.
+  runner fans `test`/`build` across every repo of the project.
 - Because actions are arbitrary shell, a tool **MUST** treat them as untrusted — carrying the same risk
   as any script in the tree (§11) — and **SHOULD** require explicit user confirmation before executing
   one.
 
+#### 4.1.3 `executables` — launchable programs
+
+`executables` names the things a repo can **launch**: the client binary, a dev server, a background
+worker. Where `actions` declares tasks that finish, `executables` declares processes that keep
+running — and a repo may need several running at once (a website and its worker). Each entry is a
+single-key map from the executable's name to its shell command:
+
+```yaml
+executables:
+  - website: uv run --env-file .env.local make run
+  - worker:  uv run --env-file .env.local make worker
+```
+
+- A command runs with its working directory set to the repo's `path`.
+- A tool that offers launching **SHOULD** present each executable as a separately startable and
+  stoppable process (in the spirit of a `Procfile` or process-compose), not as a task that completes.
+- Executables carry the same trust rules as actions: arbitrary shell, untrusted (§11), explicit user
+  confirmation before launch.
+
+A complete two-repo project:
+
 ```yaml
 repos:
-  - url: git@github.com:you/lunchcraft-backend.git
+  - remote: git@github.com:you/lunchcraft-backend.git
+    url: https://github.com/you/lunchcraft-backend
     path: backend
     branch: main
     actions:
       setup: uv sync
-      run:   uv run manage.py runserver
       test:  uv run pytest
       deploy: ./deploy.sh
-  - url: git@github.com:you/lunchcraft-frontend.git
+    executables:
+      - api: uv run manage.py runserver
+  - remote: git@github.com:you/lunchcraft-frontend.git
     path: frontend
     actions:
       setup: bun install
-      run:   bun run dev
       test:  bun test
+    executables:
+      - app: bun run dev
 ```
 
 > **Lineage (non-normative).** The repo list is moi's own, shaped after multi-repo manifests like
 > [`tsrc`](https://github.com/your-tools/tsrc) and [vcstool](https://github.com/dirk-thomas/vcstool)
 > (a YAML list of repos with clone URLs). Those tools only run a *single uniform* command across every
-> repo (`tsrc foreach`, `vcs custom`); the per-repo **`actions`** map — build/test/run/deploy declared
-> alongside each repo — is moi's addition, closer in spirit to Docker Compose's `command:` or a
-> `Procfile`/Taskfile, but stack- and tool-agnostic.
+> repo (`tsrc foreach`, `vcs custom`); the per-repo **`actions`** and **`executables`** — build/test/
+> deploy tasks and launchable processes declared alongside each repo — are moi's addition, closer in
+> spirit to a Taskfile plus a `Procfile` (or process-compose), but stack- and tool-agnostic.
 
 ### 4.2 Round-trip preservation
 
